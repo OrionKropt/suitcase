@@ -28,12 +28,16 @@
 
 //---------------CURRENT-----------------\\
 
+
 #define CURRENT_A_FLOAT 1034 - 1            // Amp
 #define CURRENT_B_FLOAT 1036 - 1           // Amp
 #define CURRENT_C_FLOAT 1038 - 1            // Amp
 #define CURRENT_N_FLOAT 1040 - 1             // Amp
 
 // Displayed on the AMPS PER PHASE display
+
+#define CURRENT_3P_AVERAGE_INT 4012 - 1    // Amp
+
 
 #define CURRENT_A_INT 4020 - 1             // Amp
 #define CURRENT_B_INT 4021 - 1              // Amp
@@ -49,10 +53,30 @@
 #define CURRENT_B_DEMAND_PEAK_INT 4028 - 1   // Amp
 #define CURRENT_C_DEMAND_PEAK_INT 4029 - 1   // Amp
 
+
+#define CURRENT_A_MIN_INT 4060 - 1
+#define CURRENT_B_MIN_INT 4061 - 1
+#define CURRENT_C_MIN_INT 4062 - 1
+
+#define CURRENT_A_MAX_INT 4085 - 1
+#define CURRENT_B_MAX_INT 4086 - 1
+#define CURRENT_C_MAX_INT 4087 - 1
+//---------------------------------------\\
+
+
+//-----------------POWER------------------\\
+
+#define REAL_POWER_TOTAL_INT 4006 - 1      // kW
+
+//---------------------------------------\\
+
 // Setup ans status
 
-#define USAGE_HOURS_INT 4110 - 1           // TIMER
+#define USAGE_HOURS_INT 4110 - 1            // TIMER
 #define USAGE_MINUTES_INT 4111 - 1          // TIMER
+
+#define USAGE_HOURS_FLOAT 1204 - 1          // TIMER
+#define USAGE_MINUTES_FLOAT 1205 - 1        // TIMER
 
 #define SERVICE_FRIQUENCY_INT 4125 - 1      // 50 or 60 Hz
 

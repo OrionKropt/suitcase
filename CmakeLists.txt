@@ -4,6 +4,8 @@ set(PROJECT_NAME suitcase)
 
 set(CMAKE_CXX_COMPILER clang++)
 
+set (CMAKE_CXX_STANDARD 20)
+
 project(${PROJECT_NAME})
 
 file (GLOB_RECURSE _SOURCES CONFIGURE_DEPENDS "src/*.cpp")
