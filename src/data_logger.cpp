@@ -10,7 +10,7 @@ Data_logger::~Data_logger()
 	modbus_free(ctx);
 }
 
-void Data_logger::init()
+auto Data_logger::init() -> void
 {
 	sprintf(setup.port, "\COM2");
 	setup.port_speed = 19200;
@@ -58,12 +58,12 @@ void Data_logger::init()
 	}
 }
 
-void Data_logger::read_data()
+auto Data_logger::read_data() -> void
 {
 
 }
 
-int Data_logger::read_power()
+auto Data_logger::read_power() -> int
 {
 	
 	return 0;
