@@ -9,6 +9,7 @@
 #include "setup.h"
 #include "error.h"
 
+#define DEBUG
 
 #if DEBUG 
 #include <iostream>

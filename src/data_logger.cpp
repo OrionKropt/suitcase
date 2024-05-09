@@ -42,7 +42,7 @@ auto Data_logger::init() -> void
 
 	// Setting to RS-485
 	modbus_rtu_set_serial_mode(ctx, MODBUS_RTU_RS485);
-	
+
 	// Connecting to the device 
 	if (modbus_connect(ctx) == -1)
 	{
@@ -92,12 +92,12 @@ auto Data_logger::read_data() -> int
 	std::cout << "Successful reading!\n";
 #endif // DEBUG
 	return 0;
-}
+	}
 
 auto Data_logger::write_data() -> void const 
-{
+	{
 	//
-#ifdef DEBUG
+		#ifdef DEBUG
 	std::cout << "\nPOWER\n";
 #endif // DEBUG
 
@@ -108,12 +108,12 @@ auto Data_logger::write_data() -> void const
 	//
 #ifdef DEBUG
 	std::cout << "\nDEMAND POWER\n";
-#endif // DEBUG
+		#endif // DEBUG
 
 	write_demand_power(real_power);
 	write_demand_power(apparent_power);
 	write_demand_power(reactive_power);
-}
+	}
 
 auto Data_logger::regs_init() -> void
 {
@@ -239,7 +239,7 @@ auto Data_logger::read_power(Power& power) -> int
 		memcpy_s(power.data[power.float_regs.C], sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
 		
 		/*if (-1 == modbus_read_registers(ctx, power.float_regs.total, 2, buf))
-		{
+{
 			register_read_error(power.float_regs.total);
 			return -1;
 		}
@@ -250,17 +250,17 @@ auto Data_logger::read_power(Power& power) -> int
 		{
 			PRINT_ERROR("Register read failed", false, "Register: {}", power.float_regs.min)
 			return -1;
-		}
+}
 		memcpy_s(power.data[power.float_regs.min], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
-	
+
 		if (-1 == modbus_read_registers(ctx, power.float_regs.max, 2, buf))
-		{
+{
 			PRINT_ERROR("Register read failed", false, "Register: {}", power.float_regs.max)
 			return -1;
 		}
 		memcpy_s(power.data[power.float_regs.max], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
 	}
-
+	
 	return 0;
 }
 
