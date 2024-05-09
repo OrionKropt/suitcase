@@ -20,12 +20,12 @@ class Data_logger
 public:
 	Data_logger();
 	~Data_logger();
-	void init();
+	auto init() -> void;
 
-	void read_data();
+	auto read_data() -> void;
 
 private:
-	int read_power();
+	auto read_power() -> int;
 
 	Setup setup;
 	Power power;
