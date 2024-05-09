@@ -1,3 +1,5 @@
+
+
 #include <iostream>
 #include <modbus.h>
 
@@ -8,17 +10,12 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "registers.h"
-#include "opengl.h"
-
-
 
 using namespace std;
 
 int main()
 {
     setlocale(LC_ALL, "RUS");
-
 
     OpenGL& opengl = OpenGL::get_instance();
     opengl.initialize();
