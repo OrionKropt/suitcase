@@ -305,6 +305,29 @@
 //------------------POWER------------------\\
 
 
+//---------------CURRENT-----------------\\
+
+#define CURRENT_A_FLOAT 1034 - 1            // Amp
+#define CURRENT_B_FLOAT 1036 - 1           // Amp
+#define CURRENT_C_FLOAT 1038 - 1            // Amp
+#define CURRENT_N_FLOAT 1040 - 1             // Amp
+
+// Displayed on the AMPS PER PHASE display
+
+#define CURRENT_A_INT 4020 - 1             // Amp
+#define CURRENT_B_INT 4021 - 1              // Amp
+#define CURRENT_C_INT 4022 - 1               // Amp
+#define CURRENT_N_INT 4023 - 1              // Amp
+
+#define CURRENT_A_DEMAND_PRESENT_INT 4024 - 1   // Amp
+#define CURRENT_B_DEMAND_PRESENT_INT 4025 - 1  // Amp
+#define CURRENT_C_DEMAND_PRESENT_INT 4026 - 1   // Amp
+
+
+#define CURRENT_A_DEMAND_PEAK_INT 4027 - 1   // Amp
+#define CURRENT_B_DEMAND_PEAK_INT 4028 - 1   // Amp
+#define CURRENT_C_DEMAND_PEAK_INT 4029 - 1   // Amp
+
 // Setup ans status
 
 #define SCALE_FACTOR_I_INT 4105 - 1                        // Power of 10
