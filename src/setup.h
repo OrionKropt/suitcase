@@ -9,7 +9,7 @@ class Setup
 {
 public:
 	uint16_t mode[2];                        // 0 = IEC, 1 - IEEE
-	
+
 	int16_t scale_i[2]{ 0 };                     // current
 	int16_t scale_v[2]{ 0 };                     // voltage
 	int16_t scale_w[2]{ 0 };                     // power
