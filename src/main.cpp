@@ -5,6 +5,7 @@
 
 
 #include "registers.h"
+#include "data_logger.h"
 
 
 
