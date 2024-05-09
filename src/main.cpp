@@ -82,6 +82,14 @@ int main()
 
 
 
+   // data_logger.write_data();
+    if (data_logger.read_data())
+    {
+        return 0;
+    }
+    data_logger.write_data();
+  // data_logger.print_setup();
+
 
 	return 0;
 }
