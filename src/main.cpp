@@ -35,29 +35,32 @@ int main()
     int buffer_size = 2;
                                             // Чтение данных из регистров 
     uint16_t regs[10];                      // Для хранения данных из 2-х регистров 
-    int rc = modbus_read_registers(
-        ctx,
-        REAL_ENERGY_TOTAL_FLOAT,                               // Адресс первого регистра
-        reg_count,                                  // Количестов регистров
-        regs);
-    cout << rc << endl;
-    if (rc == -1) {
-        std::cout << "Ошибка чтения регистров" << std::endl;
-       // cout << modbus_strerror(errno) << endl;
-        modbus_close(ctx);
-        modbus_free(ctx);
-        return 1;
-    }
+    int k = 0;
+  
+        int rc = modbus_read_registers(
+            ctx,
+            REACTIVE_POWER_TOTAL_FLOAT,                               // Адресс первого регистра
+            reg_count,                                  // Количестов регистров
+            regs);
+        cout << rc << endl;
+        if (rc == -1) {
+            std::cout << "Ошибка чтения регистров" << std::endl;
+            // cout << modbus_strerror(errno) << endl;
+            modbus_close(ctx);
+            modbus_free(ctx);
+            return 1;
+        }
 
-    float reg_content = modbus_get_float(regs);
-    //float reg_content = modbus_get_float_dcba(regs);
+         float reg_content = modbus_get_float(regs);
+         //float reg_content = modbus_get_float_dcba(regs);
 
-    cout << "Значение регистра " << reg_content << endl;
-    // Вывод данных 
-    /*for (int i = 0; i < buffer_size; ++i) {
-        std::cout << "Значение регистра " << i << ": " << regs[i] << std::endl;
-    }*/
-
+         cout << "Значение регистра " << reg_content << endl;
+         //Вывод данных 
+       /* for (int i = 0; i < buffer_size; ++i) {
+            std::cout << "Значение регистра " << i << ": " << regs[i] << std::endl;
+        }*/
+       
+  
     // Закрытие соединения и освобождение контекста 
     modbus_close(ctx);
     modbus_free(ctx);
