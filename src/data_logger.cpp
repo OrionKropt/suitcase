@@ -194,6 +194,7 @@ auto Data_logger::read_power(Power& power) -> int
 
 
 
+
 		// min max
 		if (-1 == modbus_read_registers(ctx, power.int_regs.min, 1, buf))
 		{
