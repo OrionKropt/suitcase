@@ -84,7 +84,7 @@ auto OpenGL::destroy_window(GLFWwindow *window) -> void
     glfwDestroyWindow(window);
 }
 
-auto OpenGL::create_shader_program(const char*&& name, const char*&& vertex_file, const char*&& fragment_file) -> GLuint
+auto OpenGL::create_shader_program(const char* name, const char* vertex_file, const char* fragment_file) -> GLuint
 {
     std::string vertex_code_raw;
     std::string fragment_code_raw;
@@ -166,7 +166,7 @@ auto OpenGL::create_shader_program(const char*&& name, const char*&& vertex_file
     return programID;
 }
 
-auto OpenGL::get_shader_program(const char*&& name) -> GLuint
+auto OpenGL::get_shader_program(const char* name) -> GLuint
 {
     return shader_programs[name];
 }
