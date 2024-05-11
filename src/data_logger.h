@@ -24,16 +24,20 @@ public:
 
 	auto read_data() -> void;
 
-	auto write_data() -> void;
+	auto write_data() -> void const;
 
 private:
-	auto read_power() -> int;
-	auto read_real_power(bool is_float) -> int;
 
+	auto regs_init() -> void;
+
+	auto read_power(Power& power) -> int;
+	auto write_power(Power& power) -> void const;
 	auto register_read_error(uint16_t reg) -> void;
 
 	Setup setup;
-	Power power;
+	Power real_power;
+	Power apparent_power;
+	Power reactive_power;
 	Current current;
 	Voltage voltage;
 
