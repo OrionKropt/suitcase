@@ -16,8 +16,8 @@ public:
     [[nodiscard]]
     auto create_window(int width, int height, const char* title) -> GLFWwindow*;
     auto destroy_window(GLFWwindow* window) -> void;
-    auto create_shader_program(const char*&& name, const char*&& vertex_file, const char*&& fragment_file) -> GLuint;
-    auto get_shader_program(const char*&& name) -> GLuint;
+    auto create_shader_program(const char* name, const char* vertex_file, const char* fragment_file) -> GLuint;
+    auto get_shader_program(const char* name) -> GLuint;
 
 private:
     OpenGL();
