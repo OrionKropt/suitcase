@@ -18,6 +18,7 @@ int main()
 {
     setlocale(LC_ALL, "RUS");
 
+
     OpenGL& opengl = OpenGL::get_instance();
     opengl.initialize();
     GLFWwindow* window = opengl.create_window(800, 800, "Main Window");
