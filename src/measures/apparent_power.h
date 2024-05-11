@@ -5,6 +5,7 @@
 class Apparent_power
 {
 public:
+	static const char* name;
 
 	uint16_t phase_3[2];
 

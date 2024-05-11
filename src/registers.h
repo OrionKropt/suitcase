@@ -8,13 +8,18 @@
 
 //-------Possibly under Energy----------\\
 
+#define REAL_ENERGY_TOTAL_LONG 4000 - 1 // kWh
+
 #define REAL_ENERGY_TOTAL_FLOAT 1000    // kWh
 
-#define APPARENT_ENERGY_TOTAL_FLOAT 1002 // kVAh
+#define APPARENT_ENERGY_TOTAL_FLOAT 1002 // kVAh  / Scale
 
+#define APPARENT_ENERGY_TOTAL_LONG 4002 - 1 // kVAh  / Scale
+
+#define REACTIVE_ENERGY_TOTAL_LONG 4004 - 1 // kVARh / Scale
 //--------
 
-#define REAL_POWER_TOTAL_FLOAT 1006 - 1     // kWh 
+
 
 #define APPARENT_POWER_TOTAL_FLOAT 1008 - 1 // kVA
 
@@ -66,7 +71,41 @@
 
 //-----------------POWER------------------\\
 
-#define REAL_POWER_TOTAL_INT 4006 - 1      // kW
+#define REAL_POWER_TOTAL_FLOAT 1006 - 1         // kWh 
+#define APPARENT_POWER_TOTAL_FLOAT 1008 - 1     // kVA 
+#define REACTIVE_POWER_TOTAL_FLOAT 1010 - 1     // kVAR 
+
+
+#define REAL_POWER_TOTAL_INT 4006 - 1        // kW / Scale
+
+#define APPARENT_POWER_TOTAL_INT 4007 - 1     // kVA / Scale
+
+#define REACTIVE_POWER_TOTAL_INT 4008 - 1     // kVAR / Scale
+
+#define POWER_FACTOR_TOTAL_INT 4009 - 1 
+
+#define REAL_POWER_A_INT 4036 - 1             // kW
+#define REAL_POWER_B_INT 4037 - 1             // kW
+#define REAL_POWER_C_INT 4038 - 1             // kW
+
+#define REAL_POWER_TOTAL_MIN_INT 4055 - 1     // kW
+#define REAL_POWER_TOTAL_MAX_INT 4080 - 1     // kW
+
+#define REAL_POWER_TOTAL_MIN_FLOAT 1104 - 1  // kW 
+
+#define APPARENT_POWER_A_INT 4039 - 1         // kVA
+#define APPARENT_POWER_B_INT 4040 - 1         // kVA
+#define APPARENT_POWER_C_INT 4041 - 1         // kVA
+
+#define APPARENT_POWER_TOTAL_MIN_INT 4056 - 1 // kVA
+#define APPARENT_POWER_TOTAL_MAX_INT 4081 - 1 // kVA
+
+#define REACTIVE_POWER_A_INT 4042 - 1         // kVAR 
+#define REACTIVE_POWER_B_INT 4043 - 1         // kVAR 
+#define REACTIVE_POWER_C_INT 4044 - 1         // kVAR 
+
+#define REACTIVE_POWER_TOTAL_MIN_INT 4057 - 1 // kVAR
+#define REACTIVE_POWER_TOTAL_MIN_INT 4082 - 1 // kVAR 
 
 //---------------------------------------\\
 
