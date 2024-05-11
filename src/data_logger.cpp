@@ -110,7 +110,7 @@ auto Data_logger::read_power(Power& power) -> int
 
 		// phase reading
 
-		if (-1 != modbus_read_registers(ctx, power.int_regs.A, 3, buf))
+		if (-1 == modbus_read_registers(ctx, power.int_regs.A, 3, buf))
 		{
 			register_read_error(power.int_regs.A);
 			return -1;
