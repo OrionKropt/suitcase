@@ -5,6 +5,8 @@
 class Reactive_power
 {
 public:
+	static const char* name;
+
 	uint16_t phase_3[2];
 
 	uint16_t A[2];
