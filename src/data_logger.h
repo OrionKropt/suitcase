@@ -22,7 +22,7 @@ public:
 	~Data_logger();
 	auto init() -> void;
 
-	auto read_data() -> void;
+	auto read_data() -> int;
 
 	auto write_data() -> void const;
 
@@ -34,6 +34,7 @@ private:
 
 	auto read_power(Power& power) -> int;
 	auto write_power(Power& power) -> void const;
+	auto write_demand_power(Power& power) -> void const;
 	auto register_read_error(uint16_t reg) -> void;
 
 	Setup setup;
