@@ -111,6 +111,11 @@
 
 // Setup ans status
 
+#define SCALE_FACTOR_I_INT 4105 - 1         // Power of 10
+#define SCALE_FACTOR_V_INT 4106 - 1         // Power of 10
+#define SCALE_FACTOR_W_INT 4107 - 1         // Power of 10
+#define SCALE_FACTOR_E_INT 4108 - 1         // Power of 10
+
 #define USAGE_HOURS_INT 4110 - 1            // TIMER
 #define USAGE_MINUTES_INT 4111 - 1          // TIMER
 
@@ -120,4 +125,4 @@
 #define SERVICE_FRIQUENCY_INT 4125 - 1      // 50 or 60 Hz
 
 #define DISPLAY_MODE_INT 4128 - 1         // 0 = IEC
-                                        // 1 = IEEE
+                                          // 1 = IEEE

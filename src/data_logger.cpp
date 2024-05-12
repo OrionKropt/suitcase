@@ -60,6 +60,21 @@ auto Data_logger::init() -> void
 		#endif // DEBUG
 	}
 
+	if (-1 == modbus_read_registers(ctx, SCALE_FACTOR_I_INT, 4, buf))
+	{
+		#ifdef DEBUG
+		std::cerr << "Register read error\n";
+		std::cerr << "Data_logger::init()\n";
+		std::cerr << "Register " << SCALE_FACTOR_I_INT << '\n';
+		#endif // DEBUG
+		return;
+	}
+
+	setup.scale_i[0] = buf[0];
+	setup.scale_v[0] = buf[1];
+	setup.scale_w[0] = buf[2];
+	setup.scale_e[0] = buf[3];
+
 	regs_init();
 
 	is_float = false;
@@ -155,6 +170,27 @@ auto Data_logger::read_power(Power& power) -> int
 		memcpy_s(power.data[power.float_regs.total], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
 		return 0;
 	}
+}
+
+auto Data_logger::print_setup() -> void const
+{
+#ifdef DEBUG
+	std::cout << "\nSETUP\n\n";
+	std::cout << "Scale (power of 10):\n";
+	std::cout << "Current " << setup.scale_i[0] << '\n';
+	std::cout << "Voltage " << setup.scale_v[0] << '\n';
+	std::cout << "Power " << setup.scale_w[0] << '\n';
+	std::cout << "Energy " << setup.scale_e[0] << "\n\n";
+	std::cout << "Total time for which the absolute current on at least one phase is > 0.1Amp:\n";
+	std::cout << setup.usage_hours[0] << " hours, " << setup.usage_minutes[0] << " minutes\n";
+	std::cout << "\nPORT SETUP\n\n";
+	std::cout << "PORT: " << setup.port << '\n';
+	std::cout << "PORT SPEED: " << setup.port_speed << " bauds\n";
+	std::cout << "DATA BITS: " << setup.data_bits << '\n';
+	std::cout << "STOP BITS: " << setup.stop_bits << '\n';
+	std::cout << "Device ID: " << setup.slave_id << '\n';
+#endif // DEBUG
+
 }
 
 auto Data_logger::register_read_error(uint16_t reg) -> void
