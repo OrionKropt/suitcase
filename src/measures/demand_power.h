@@ -37,13 +37,6 @@ class Demand_power
 public:
 	std::unordered_map<uint16_t, int16_t[2]> data;
 
-
-	//int16_t phase_3[2];
-
-	//int16_t last[2];
-	//int16_t peak[2];
-	//int16_t total[2];
-
 	Power_float_registers int_regs;
 	Power_int_registers float_regs;
 };
