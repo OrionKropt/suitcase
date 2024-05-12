@@ -354,6 +354,12 @@
 
 #define REAL_POWER_TOTAL_DEMAND_PRESENT_FLOAT 1022 - 1 // kW / Scale
 
+#define REAL_POWER_A_FLOAT 1066 - 1          // kW
+#define REAL_POWER_B_FLOAT 1068 - 1          // kW
+#define REAL_POWER_C_FLOAT 1070 - 1          // kW
+
+#define REAL_POWER_TOTAL_MIN_FLOAT 1104 - 1   // kW 
+#define REAL_POWER_TOTAL_MAX_FLOAT 1154 - 1  // kW 
 
 #define REAL_POWER_TOTAL_INT 4006 - 1        // kW / Scale
 
@@ -373,7 +379,7 @@
 #define REAL_POWER_TOTAL_MIN_INT 4055 - 1     // kW
 #define REAL_POWER_TOTAL_MAX_INT 4080 - 1     // kW
 
-#define REAL_POWER_TOTAL_MIN_FLOAT 1104 - 1  // kW 
+
 
 
 #define APPARENT_POWER_A_INT 4039 - 1         // kVA / Scale
