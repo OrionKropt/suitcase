@@ -26,6 +26,8 @@ public:
 
 	auto write_data() -> void const;
 
+	auto print_setup() -> void const;
+
 private:
 
 	auto regs_init() -> void;

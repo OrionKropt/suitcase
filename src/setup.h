@@ -9,13 +9,17 @@ class Setup
 {
 public:
 	uint16_t mode[2];                        // 0 = IEC, 1 - IEEE
-
+	
+	int16_t scale_i[2]{ 0 };                     // current
+	int16_t scale_v[2]{ 0 };                     // voltage
+	int16_t scale_w[2]{ 0 };                     // power
+	int16_t scale_e[2]{ 0 };                     // energy
 
 	
 	// This combination timer counts the total time for which the absolute current on at least one phase is > 0.1Amp.
 	
-	uint16_t usage_hours[2];                 // <= 0
-	uint16_t usage_minutes[2];               // 0.0 - 59.0   
+	uint16_t usage_hours[2]{ 0 };                 // <= 0
+	uint16_t usage_minutes[2]{ 0 };               // 0.0 - 59.0   
 
 	char port[10];                                // \COMN, N - COM number
 	uint16_t port_speed;                          // bods, 19200 by default 
