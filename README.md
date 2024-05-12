@@ -6,9 +6,9 @@ This program reads data from the PM710 Schneider electric device via RS-485 inte
 - [ ] **Reading**
   - [ ] Power
     - [x] Real
-    - [ ] Apparent
-    - [ ] Reactive
-    - [ ] Demand
+    - [x] Apparent
+    - [x] Reactive
+    - [x] Demand
   - [ ] Current
     - [ ] Real
     - [ ] Demand 
@@ -20,5 +20,7 @@ This program reads data from the PM710 Schneider electric device via RS-485 inte
   - [ ] Time
 - [ ] **Logging**
 - [ ] **Writing to file**
+- [ ] **Recording mode**
+- [ ] **UI**
 
 		
