@@ -21,6 +21,9 @@ This program reads data from the PM710 Schneider electric device via RS-485 inte
 - [ ] **Logging**
 - [ ] **Writing to file**
 - [ ] **Recording mode**
-- [ ] **UI**
-
-		
+- [ ] **Rendering**
+ - [ ] Graphics
+  - [x] Point
+  - [x] Line
+  - [ ] Text
+ - [ ] Buttons
