@@ -48,7 +48,7 @@ int main()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+   
     // Вершины, цвета
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*) 0);
     glEnableVertexAttribArray(0);
@@ -69,17 +69,26 @@ int main()
 
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
+   
         glUseProgram(dot_shader_program);
         glBindVertexArray(VAO);
 //        glDrawArrays(GL_TRIANGLES, 0, 3);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
-
+  
         glfwSwapBuffers(window);
     }
 
+    //    if (rc == -1) {
+    //        std::cout << "Ошибка чтения регистров" << std::endl;
+    //        // cout << modbus_strerror(errno) << endl;
+    //        modbus_close(ctx);
+    //        modbus_free(ctx);
+    //        return 1;
+    //    }
 
+    //     //float reg_content = modbus_get_float(regs);
+    //     //float reg_content = modbus_get_float_dcba(regs);
 
    // data_logger.write_data();
     if (data_logger.read_data())
@@ -88,7 +97,10 @@ int main()
     }
     data_logger.write_data();
   // data_logger.print_setup();
-
+  
+    //// Закрытие соединения и освобождение контекста 
+    //modbus_close(ctx);
+    //modbus_free(ctx);
 
 	return 0;
 }
