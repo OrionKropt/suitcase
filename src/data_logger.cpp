@@ -77,24 +77,25 @@ auto Data_logger::init() -> void
 
 	regs_init();
 
-	is_float = false;
+	is_float = true;
 }
 
 auto Data_logger::read_data() -> int
 {
-	if (
-		-1 == read_power(real_power) ||
-		-1 == read_power(apparent_power) ||
-		-1 == read_power(reactive_power)
-		)
-	{
-#ifdef DEBUG
-		std::cerr << "Error reading data\n";
-		std::cerr << "Data_logger::read_data()\n";
-#endif // DEBUG
-
-		return -1;
-	}
+	read_power(real_power);
+//	if (
+//		-1 == read_power(real_power) ||
+//		-1 == read_power(apparent_power) ||
+//		-1 == read_power(reactive_power)
+//		)
+//	{
+//#ifdef DEBUG
+//		std::cerr << "Error reading data\n";
+//		std::cerr << "Data_logger::read_data()\n";
+//#endif // DEBUG
+//
+//		return -1;
+//	}
 	
 #ifdef DEBUG
 	std::cout << "Successful reading\n";
@@ -137,7 +138,12 @@ auto Data_logger::regs_init() -> void
 	real_power.demand.int_regs.peak = REAL_POWER_TOTAL_DEMAND_PEAK_INT;
 
 	// float
+	real_power.float_regs.A = REAL_POWER_A_FLOAT;
+	real_power.float_regs.B = REAL_POWER_B_FLOAT;
+	real_power.float_regs.C = REAL_POWER_C_FLOAT;
+	real_power.float_regs.total = REAL_POWER_TOTAL_FLOAT;
 	real_power.float_regs.min = REAL_POWER_TOTAL_MIN_FLOAT;
+	real_power.float_regs.max = REAL_POWER_TOTAL_MAX_FLOAT;
 
 	// ----------apparent_power----------
 	// int
@@ -149,6 +155,10 @@ auto Data_logger::regs_init() -> void
 	apparent_power.int_regs.max = APPARENT_POWER_TOTAL_MAX_INT;
 	apparent_power.demand.int_regs.total = APPARENT_POWER_TOTAL_DEMAND_PRESENT_INT;
 	apparent_power.demand.int_regs.peak = APPARENT_POWER_TOTAL_DEMAND_PEAK_INT;
+	
+	// float
+	apparent_power.float_regs.total = APPARENT_POWER_TOTAL_FLOAT;
+	
 	// ----------reactive_power----------
 	// int
 	reactive_power.int_regs.A = REACTIVE_POWER_A_INT;
@@ -159,6 +169,9 @@ auto Data_logger::regs_init() -> void
 	reactive_power.int_regs.max = REACTIVE_POWER_TOTAL_MAX_INT;
 	reactive_power.demand.int_regs.total = REACTIVE_POWER_TOTAL_DEMAND_PRESENT_INT;
 	reactive_power.demand.int_regs.peak = REACTIVE_POWER_TOTAL_DEMAND_PEAK_INT;
+
+	// float
+	reactive_power.float_regs.total = REACTIVE_POWER_TOTAL_FLOAT;
 }
 
 
@@ -221,13 +234,39 @@ auto Data_logger::read_power(Power& power) -> int
 	}
 	else
 	{
-		// min max
-		if (-1 == modbus_read_registers(ctx, power.float_regs.total, 2, buf))
+		// -------FLOAT----------
+		// phase reading
+
+		if (-1 == modbus_read_registers(ctx, power.float_regs.A, 6, buf))
+		{
+			register_read_error(power.float_regs.A);
+			return -1;
+		}
+		memcpy_s(power.data[power.float_regs.A], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(power.data[power.float_regs.B], sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(power.data[power.float_regs.C], sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+		
+		/*if (-1 == modbus_read_registers(ctx, power.float_regs.total, 2, buf))
 		{
 			register_read_error(power.float_regs.total);
 			return -1;
 		}
-		memcpy_s(power.data[power.float_regs.total], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(power.data[power.float_regs.total], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);*/
+
+		// min max
+		if (-1 == modbus_read_registers(ctx, power.float_regs.min, 2, buf))
+		{
+			register_read_error(power.float_regs.min);
+			return -1;
+		}
+		memcpy_s(power.data[power.float_regs.min], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+	
+		if (-1 == modbus_read_registers(ctx, power.float_regs.max, 2, buf))
+		{
+			register_read_error(power.float_regs.max);
+			return -1;
+		}
+		memcpy_s(power.data[power.float_regs.max], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
 	}
 
 	return 0;
@@ -266,34 +305,52 @@ auto Data_logger::register_read_error(uint16_t reg) -> void
 
 auto Data_logger::write_power(Power& power) -> void const
 {
-#ifdef DEBUG
-	std::cout << power.name << ", " << power.metric << '\n';
-	std::cout << "A\tB\tC\n";
+	float A = 0, B = 0, C = 0;
+	float min = 0, max = 0, total = 0;
 	if (!is_float)
 	{
-		std::cout << real_power.data[power.int_regs.A][0] << "\t"
-			<< real_power.data[power.int_regs.B][0] << "\t"
-			<< real_power.data[power.int_regs.C][0] << '\n';
-		std::cout << "Total " << power.data[power.int_regs.total][0] << ' ' << power.metric << '\n';
-		std::cout << "Min = " << power.data[power.int_regs.min][0] << ' ' << power.metric << '\n';
-		std::cout << "Max = " << power.data[power.int_regs.max][0] << ' ' << power.metric << "\n\n";
+		A = real_power.data[power.int_regs.A][0];
+		B = real_power.data[power.int_regs.B][0];
+		C = real_power.data[power.int_regs.C][0];
+		total = power.data[power.int_regs.total][0];
+		min = power.data[power.int_regs.min][0];
+		max = power.data[power.int_regs.max][0];
 	}
 	else
 	{
-		float temp = modbus_get_float( (uint16_t*) power.data[power.int_regs.min]);
-		std::cout << "Mim = " << temp << " " << power.metric << '\n';
+		A = modbus_get_float_abcd( (uint16_t*) power.data[power.float_regs.A]);
+		B = modbus_get_float_abcd( (uint16_t*) power.data[power.float_regs.B]);
+		C = modbus_get_float_abcd( (uint16_t*) power.data[power.float_regs.C]);
+		min = modbus_get_float_abcd( (uint16_t*) power.data[power.float_regs.min]);
+		max = modbus_get_float_abcd( (uint16_t*) power.data[power.float_regs.max]);
+		total = modbus_get_float_abcd( (uint16_t*) power.data[power.float_regs.total]);
 	}
+#ifdef DEBUG
+	std::cout << power.name << ", " << power.metric << '\n';
+	std::cout << "A\tB\tC\n";
+	std::cout << A << "\t" << B << "\t" << C << '\n';
+	std::cout << "Total " << total << ' ' << power.metric << '\n';
+	std::cout << "Min = " << min << ' ' << power.metric << '\n';
+	std::cout << "Max = " << max << ' ' << power.metric << "\n\n";
 #endif // DEBUG
 }
 
 auto Data_logger::write_demand_power(Power& power) -> void const
 {
-	std::cout << power.name << ", " << power.metric << '\n';
+	float total = 0, peak = 0;
 	if (!is_float)
 	{
-		std::cout << "Total " << power.demand.data[power.demand.int_regs.total][0] << ' ' << power.metric << '\n';
-		std::cout << "Peak " << power.demand.data[power.demand.int_regs.peak][0] << ' ' << power.metric << "\n\n";
+		total = power.demand.data[power.demand.int_regs.total][0];
+		peak = power.demand.data[power.demand.int_regs.peak][0];
 	}
+	else
+	{
+		total = modbus_get_float_abcd( (uint16_t*) power.data[power.float_regs.total]);
+		peak = modbus_get_float_abcd( (uint16_t*) power.data[power.float_regs.peak]);
+	}
+	std::cout << power.name << ", " << power.metric << '\n';
+	std::cout << "Total " << total << ' ' << power.metric << '\n';
+	std::cout << "Peak " << power.demand.data[power.demand.int_regs.peak][0] << ' ' << power.metric << "\n\n";
 }
 
 
