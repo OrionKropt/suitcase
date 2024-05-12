@@ -73,19 +73,20 @@ auto Data_logger::init() -> void
 
 auto Data_logger::read_data() -> int
 {
-	if (
-		-1 == read_power(real_power) ||
-		-1 == read_power(apparent_power) ||
-		-1 == read_power(reactive_power)
-		)
-	{
-#ifdef DEBUG
-		std::cerr << "Error reading data\n";
-		std::cerr << "Data_logger::read_data()\n";
-#endif // DEBUG
-
-		return -1;
-	}
+	read_power(real_power);
+//	if (
+//		-1 == read_power(real_power) ||
+//		-1 == read_power(apparent_power) ||
+//		-1 == read_power(reactive_power)
+//		)
+//	{
+//#ifdef DEBUG
+//		std::cerr << "Error reading data\n";
+//		std::cerr << "Data_logger::read_data()\n";
+//#endif // DEBUG
+//
+//		return -1;
+//	}
 	
 #ifdef DEBUG
 	std::cout << "Successful reading\n";
