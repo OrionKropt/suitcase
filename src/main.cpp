@@ -1,16 +1,33 @@
 #include <iostream>
 #include <modbus.h>
+<<<<<<< Updated upstream
+=======
+#include "data_logger.h"
+#include "registers.h"
+#include "data_logger.h"
+
+>>>>>>> Stashed changes
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "registers.h"
 #include "opengl.h"
 
+<<<<<<< Updated upstream
+=======
+
+
+
+>>>>>>> Stashed changes
 using namespace std;
 
 int main()
 {
     setlocale(LC_ALL, "RUS");
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     OpenGL& opengl = OpenGL::get_instance();
     opengl.initialize();
     GLFWwindow* window = opengl.create_window(800, 800, "Main Window");
@@ -71,6 +88,7 @@ int main()
         glfwSwapBuffers(window);
     }
 
+<<<<<<< Updated upstream
 //	modbus_t* ctx;
 //	ctx = modbus_new_rtu("\COM2", 19200, 'N', 8, 1);
 //    if (ctx == NULL) {
@@ -124,6 +142,24 @@ int main()
 //    // «акрытие соединени€ и освобождение контекста
 //    modbus_close(ctx);
 //    modbus_free(ctx);
+=======
+
+   
+    Data_logger data_lgger;
+    data_lgger.init();
+
+
+    Data_logger data_logger;
+    data_logger.init();
+
+   // data_logger.write_data();
+    if (data_logger.read_data())
+    {
+        return 0;
+    }
+    data_logger.write_data();
+  // data_logger.print_setup();
+>>>>>>> Stashed changes
 
 	return 0;
 }
