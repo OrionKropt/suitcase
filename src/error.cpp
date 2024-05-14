@@ -1,16 +1,21 @@
 #include "error.h"
+#include <iostream>
 
-auto print_error(const char* class_name, const char* method_name, const char* what, bool exit, unsigned int line, const char* file, std::function<void()> extra_print) -> void
+
+auto print_error(const char* file, unsigned int line, const char* function,
+	const char* what, bool exit, const char* extra_print) -> void
 {
-	std::cerr << "ERROR::" << class_name << "::" << method_name << ": " << what << '\n';
-	std::cerr << "File: " << file << '\n';
-	std::cerr << "Line: " << line << '\n';
+
+	std::cerr << "ERROR: \'" << what << "\'\n";
+	std::cerr << "\tIn " << function << '\n';
+	std::cerr << '\t' << file << ", line " << line << '\n';
 	if (extra_print != nullptr)
 	{
-	extra_print();
+		std::cerr << extra_print;
 	}
 	if (exit)
 	{
 		std::exit(EXIT_FAILURE);
 	}
 }
+
