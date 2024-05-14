@@ -2,7 +2,7 @@
 
 #include <format>
 
-// Becouse it's inpossible to put const char str whit macro
+						// Becouse it's inpossible to put const char str whit macro
 #define EMPTY_STR ""    //-------------------------------------------------------|
 																			//   |
 auto print_error(const char* file, unsigned int line, const char* function, //   |
