@@ -7,7 +7,7 @@ auto print_error(const char* class_name, const char* method_name, const char* wh
 	std::cerr << "Line: " << line << '\n';
 	if (extra_print != nullptr)
 	{
-		extra_print();
+	extra_print();
 	}
 	if (exit)
 	{
