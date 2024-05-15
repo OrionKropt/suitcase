@@ -1,5 +1,6 @@
 #include "data_logger.h"
-
+#include <fstream>
+#include <format>
 
 Data_logger::Data_logger() : ctx(nullptr), real_power("P", "kW"),
 apparent_power("S", "kVA"),
@@ -16,6 +17,8 @@ Data_logger::~Data_logger()
 
 auto Data_logger::init() -> void
 {
+
+	
 	sprintf(setup.port, "\COM2");
 	setup.port_speed = 19200;
 	setup.parity = 'N';
@@ -25,10 +28,7 @@ auto Data_logger::init() -> void
 	ctx = modbus_new_rtu(setup.port, setup.port_speed, setup.parity, setup.data_bits, setup.stop_bits);
 	if (ctx == NULL) 
 	{
-		#ifdef DEBUG
-			std::cerr << "Failed to create a context Modbus!\n";
-			std::cerr << "Data_logger::init()\n";
-		return;
+		PRINT_ERROR("Failed to create a context Modbus", true)
 	}
 	else
 	{
@@ -42,16 +42,12 @@ auto Data_logger::init() -> void
 
 	// Setting to RS-485
 	modbus_rtu_set_serial_mode(ctx, MODBUS_RTU_RS485);
-
+	
 	// Connecting to the device 
 	if (modbus_connect(ctx) == -1)
 	{
-		#ifdef DEBUG
-		std::cerr << "Failed to connect to the device!\n";
-		std::cerr << "Data_logger::init()\n";
-		#endif // DEBUG
 		modbus_free(ctx);
-		return;
+		PRINT_ERROR("Failed to connect to the device", true)
 	}
 	else
 	{
@@ -62,12 +58,7 @@ auto Data_logger::init() -> void
 
 	if (-1 == modbus_read_registers(ctx, SCALE_FACTOR_I_INT, 4, buf))
 	{
-		#ifdef DEBUG
-		std::cerr << "Register read error\n";
-		std::cerr << "Data_logger::init()\n";
-		std::cerr << "Register " << SCALE_FACTOR_I_INT << '\n';
-		#endif // DEBUG
-		return;
+		PRINT_ERROR("Register read failed", 1, "Register: {}", SCALE_FACTOR_I_INT)
 	}
 
 	setup.scale_i[0] = buf[0];
@@ -98,7 +89,7 @@ auto Data_logger::read_data() -> int
 //	}
 	
 #ifdef DEBUG
-	std::cout << "Successful reading\n";
+	std::cout << "Successful reading!\n";
 #endif // DEBUG
 	return 0;
 }
@@ -186,7 +177,7 @@ auto Data_logger::read_power(Power& power) -> int
 
 		if (-1 == modbus_read_registers(ctx, power.int_regs.A, 3, buf))
 		{
-			register_read_error(power.int_regs.A);
+			PRINT_ERROR("Register read failed", true, "Register: {}", power.int_regs.A)
 			return -1;
 		}
 		power.data[power.int_regs.A][0] = buf[0];
@@ -196,7 +187,7 @@ auto Data_logger::read_power(Power& power) -> int
 
 		if (-1 == modbus_read_registers(ctx, power.int_regs.total, 1, buf))
 		{
-			register_read_error(power.int_regs.total);
+			PRINT_ERROR("Register read failed", false, "Register: {}", power.int_regs.total)
 			return -1;
 		}
 		power.data[power.int_regs.total][0] = buf[0];
@@ -206,13 +197,13 @@ auto Data_logger::read_power(Power& power) -> int
 		// min max
 		if (-1 == modbus_read_registers(ctx, power.int_regs.min, 1, buf))
 		{
-			register_read_error(power.int_regs.min);
+			PRINT_ERROR("Register read failed", false, "Register: {}", power.int_regs.min)
 			return -1;
 		}
 		power.data[power.int_regs.min][0] = buf[0];
 		if (-1 == modbus_read_registers(ctx, power.int_regs.max, 1, buf))
 		{
-			register_read_error(power.int_regs.max);
+			PRINT_ERROR("Register read failed", false, "Register: {}", power.int_regs.max)
 			return -1;
 		}
 		power.data[power.int_regs.max][0] = buf[0];
@@ -220,13 +211,13 @@ auto Data_logger::read_power(Power& power) -> int
 		// demand
 		if (-1 == modbus_read_registers(ctx, power.demand.int_regs.total, 1, buf))
 		{
-			register_read_error(power.demand.int_regs.total);
+			PRINT_ERROR("Register read failed", false, "Register: {}", power.demand.int_regs.total)
 			return -1;
 		}
 		power.demand.data[power.demand.int_regs.total][0] = buf[0];
 		if (-1 == modbus_read_registers(ctx, power.demand.int_regs.peak, 1, buf))
 		{
-			register_read_error(power.demand.int_regs.peak);
+			PRINT_ERROR("Register read failed", false, "Register: {}", power.demand.int_regs.peak)
 			return -1;
 		}
 		power.demand.data[power.demand.int_regs.peak][0] = buf[0];
@@ -240,7 +231,7 @@ auto Data_logger::read_power(Power& power) -> int
 
 		if (-1 == modbus_read_registers(ctx, power.float_regs.A, 6, buf))
 		{
-			register_read_error(power.float_regs.A);
+			PRINT_ERROR("Register read failed", false, "Register: {}", power.float_regs.A)
 			return -1;
 		}
 		memcpy_s(power.data[power.float_regs.A], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
@@ -257,14 +248,14 @@ auto Data_logger::read_power(Power& power) -> int
 		// min max
 		if (-1 == modbus_read_registers(ctx, power.float_regs.min, 2, buf))
 		{
-			register_read_error(power.float_regs.min);
+			PRINT_ERROR("Register read failed", false, "Register: {}", power.float_regs.min)
 			return -1;
 		}
 		memcpy_s(power.data[power.float_regs.min], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
 	
 		if (-1 == modbus_read_registers(ctx, power.float_regs.max, 2, buf))
 		{
-			register_read_error(power.float_regs.max);
+			PRINT_ERROR("Register read failed", false, "Register: {}", power.float_regs.max)
 			return -1;
 		}
 		memcpy_s(power.data[power.float_regs.max], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
@@ -291,14 +282,6 @@ auto Data_logger::print_setup() -> void const
 	std::cout << "STOP BITS: " << setup.stop_bits << '\n';
 	std::cout << "Device ID: " << setup.slave_id << '\n';
 #endif // DEBUG
-
-}
-
-auto Data_logger::register_read_error(uint16_t reg) -> void
-{
-	std::cerr << "ERROR::DATA_LOGGER::READ_POWER::REGISTER READ FAILED\n";
-	std::cerr << "Register: " << reg << '\n';
-
 
 }
 

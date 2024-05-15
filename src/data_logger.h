@@ -1,16 +1,16 @@
 #pragma once
 
-#include <fstream>
+
 #include <modbus.h>
 #include "registers.h"
 #include "power.h"
 #include "current.h"
 #include "voltage.h"
 #include "setup.h"
+#include "error.h"
 
-#define DEBUG
 
-#ifdef DEBUG
+#if DEBUG 
 #include <iostream>
 #endif // DEBUG
 
