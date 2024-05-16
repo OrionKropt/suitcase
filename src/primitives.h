@@ -1,14 +1,20 @@
 #pragma once
 
+#include <string>
+#include <unordered_map>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include "opengl.h"
 
 class Primitive
 {
 public:
     virtual ~Primitive() = 0;
+    virtual auto draw() -> void = 0;
 };
+
 
 class Point : public Primitive
 {
@@ -17,20 +23,23 @@ public:
     Point(GLfloat point_x, GLfloat point_y, GLfloat width = 0.015f, GLfloat R = 1.0, GLfloat G = 0.0f, GLfloat B = 0.0f);
     ~Point() override;
 
-    auto draw() -> void;
+    auto draw() -> void override;
     auto set_color(glm::vec3 new_color) -> void;
     auto set_color(GLfloat R, GLfloat G, GLfloat B) -> void;
     auto set_width(GLfloat new_width) -> void;
-    auto set_shader_program(GLuint new_shader_program) -> void;
-    auto set_shader_program(const char* program_name) -> void;
+    auto set_shader(Shader* new_shader) -> void;
+    auto set_shader(const char* shader_name) -> void;
 
 private:
-    GLuint      shader_program;
-    GLuint      VAO, VBO, EBO;
+    Shader*     shader;
+    GLuint      VAO;
+    GLuint      VBO;
+    GLuint      EBO;
     glm::vec2   point;
     glm::vec3   color;          // [0..1] RGB
     GLfloat     width;
 };
+
 
 class Line : public Primitive
 {
@@ -39,16 +48,17 @@ public:
     Line(GLfloat start_x, GLfloat start_y, GLfloat end_x, GLfloat end_y, GLfloat width = 7.0f, GLfloat R = 1.0f, GLfloat G = 0.0f, GLfloat B = 0.0f);
     ~Line() override;
 
-    auto draw() -> void;
+    auto draw() -> void override;
     auto set_color(glm::vec3 new_color) -> void;
     auto set_color(GLfloat R, GLfloat G, GLfloat B) -> void;
     auto set_width(GLfloat new_width) -> void;
-    auto set_shader_program(GLuint new_shader_program) -> void;
-    auto set_shader_program(const char* program_name) -> void;
+    auto set_shader(Shader* new_shader) -> void;
+    auto set_shader(const char* shader_name) -> void;
 
 private:
-    GLuint      shader_program;
-    GLuint      VAO, VBO;
+    Shader*     shader;
+    GLuint      VAO;
+    GLuint      VBO;
     glm::vec2   start;
     glm::vec2   end;
     glm::vec3   color;          // [0..1] RGB
