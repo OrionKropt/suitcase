@@ -1,11 +1,12 @@
 #include "primitives.h"
 
+#include <iostream>
 #include <glm/gtc/type_ptr.hpp>
-#include "opengl.h"
 
 OpenGL& opengl = OpenGL::get_instance();
 
 Primitive::~Primitive() = default;
+auto Primitive::draw() -> void {}
 
 
 Point::Point(glm::vec2 point, GLfloat width, glm::vec3 color)
@@ -13,8 +14,7 @@ Point::Point(glm::vec2 point, GLfloat width, glm::vec3 color)
     this->point = point;
     this->width = width;
     this->color = color;
-
-    shader_program = opengl.get_shader_program("primitives");
+    this->shader = opengl.get_shader("primitives");
 
     GLfloat vertices[] = {
             point.x - width, point.y - width,
@@ -40,6 +40,9 @@ Point::Point(glm::vec2 point, GLfloat width, glm::vec3 color)
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*) 0);
     glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 Point::Point(GLfloat point_x, GLfloat point_y, GLfloat width, GLfloat R, GLfloat G, GLfloat B)
@@ -47,19 +50,19 @@ Point::Point(GLfloat point_x, GLfloat point_y, GLfloat width, GLfloat R, GLfloat
 
 Point::~Point()
 {
+    delete shader;
+
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 }
 
 auto Point::draw() -> void
 {
-    glUseProgram(shader_program);
-
-    GLint color_uniform_location = glGetUniformLocation(shader_program, "color");
-    glUniform3fv(color_uniform_location, 1, glm::value_ptr(color));
-
+    shader->use();
+    shader->set_vec3("color", color);
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }
 
 auto Point::set_color(glm::vec3 new_color) -> void
@@ -77,15 +80,14 @@ auto Point::set_width(GLfloat new_width) -> void
     width = new_width;
 }
 
-auto Point::set_shader_program(GLuint new_shader_program) -> void
+auto Point::set_shader(Shader* new_shader) -> void
 {
-    shader_program = new_shader_program;
+    shader = new_shader;
 }
 
-auto Point::set_shader_program(const char* program_name) -> void
+auto Point::set_shader(const char* shader_name) -> void
 {
-    GLuint id = opengl.get_shader_program(program_name);
-    set_shader_program(id);
+    shader = opengl.get_shader(shader_name);
 }
 
 
@@ -96,7 +98,7 @@ Line::Line(glm::vec2 start, glm::vec2 end, GLfloat width, glm::vec3 color)
     this->color = color;
     this->width = width;
 
-    shader_program = opengl.get_shader_program("primitives");
+    shader = opengl.get_shader("primitives");
 
     GLfloat vertices[] = {
             start.x, start.y,
@@ -122,6 +124,8 @@ Line::Line(GLfloat start_x, GLfloat start_y, GLfloat end_x, GLfloat end_y, GLflo
 
 Line::~Line()
 {
+    delete shader;
+
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 }
@@ -129,13 +133,11 @@ Line::~Line()
 auto Line::draw() -> void
 {
     glLineWidth(width);
-
-    glUseProgram(shader_program);
-    GLint color_uniform_location = glGetUniformLocation(shader_program, "color");
-    glUniform3fv(color_uniform_location, 1, glm::value_ptr(color));
-
+    shader->use();
+    shader->set_vec3("color", color);
     glBindVertexArray(VAO);
     glDrawArrays(GL_LINES, 0, 2);
+    glBindVertexArray(0);
 }
 
 auto Line::set_color(glm::vec3 new_color) -> void
@@ -153,13 +155,12 @@ auto Line::set_width(GLfloat new_width) -> void
     width = new_width;
 }
 
-auto Line::set_shader_program(GLuint new_shader_program) -> void
+auto Line::set_shader(Shader* new_shader) -> void
 {
-    shader_program = new_shader_program;
+    shader = new_shader;
 }
 
-auto Line::set_shader_program(const char* program_name) -> void
+auto Line::set_shader(const char* shader_name) -> void
 {
-    GLuint id = opengl.get_shader_program(program_name);
-    set_shader_program(id);
+    shader = opengl.get_shader(shader_name);
 }
