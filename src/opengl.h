@@ -9,19 +9,16 @@
 class Shader;
 
 class OpenGL {
+    struct Character;
 public:
     static auto get_instance() -> OpenGL&;
 
     auto initialize() -> void;
 
-    [[deprecated("Candidate for deletion")]] [[nodiscard]]
-    auto create_window(int width, int height, const char* title) -> GLFWwindow*;
-    [[deprecated("Candidate for deletion")]]
-    auto destroy_window(GLFWwindow* window) -> void;
     auto get_window() -> GLFWwindow*;
     auto create_shader(const char* name, const char* vertex_file, const char* fragment_file, const char* geometry_file = nullptr) -> Shader*;
     auto get_shader(const char* name) -> Shader*;
-    auto render_text(Shader& shader, const std::string& text, float x, float y, float scale, glm::vec3 color) -> void;
+    auto get_char(char c) -> const Character*;
     auto get_window_width() -> GLint;
     auto get_window_height() -> GLint;
 
@@ -40,8 +37,6 @@ private:
     std::unordered_map<char, Character>         characters;
     std::unordered_map<std::string, Shader*>    shaders;
     GLFWwindow*                                 window;
-    GLuint                                      text_VAO;
-    GLuint                                      text_VBO;
 
     OpenGL();
     ~OpenGL();

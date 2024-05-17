@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include "error.h"
 
 GLint OpenGL::window_width;
 GLint OpenGL::window_height;
@@ -28,12 +29,11 @@ auto OpenGL::initialize() -> void
     window_height = 800;
 
 
-    //                                    GLFW initialization
-    // -------------------------------------------------------------------------------------------
+    // *                                    GLFW initialization
+    // * -------------------------------------------------------------------------------------------
     if (!glfwInit())
     {
-        std::cerr << "ERROR::OPENGL::INITIALIZE::GLFW_INIT_FAILED" << std::endl;
-        exit(EXIT_FAILURE);
+        PRINT_ERROR("GLFW initialization failed", true);
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -45,27 +45,27 @@ auto OpenGL::initialize() -> void
     window = glfwCreateWindow(window_width, window_height, "PM710 Graphics", nullptr, nullptr);
     if (!window)
     {
-        std::cerr << "ERROR::OPENGL::INITIALIZE::TEMP_WINDOW_CREATION_FAILED" << std::endl;
         glfwTerminate();
-        exit(EXIT_FAILURE);
+        PRINT_ERROR("Window creation failed", true);
     }
 
+    glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
     glfwMakeContextCurrent(window);
 
 
-    //                                    GLAD initialization
-    // -------------------------------------------------------------------------------------------
+    // *                                    GLAD initialization
+    // * -------------------------------------------------------------------------------------------
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
     {
-        std::cerr << "ERROR::OPENGL::INITIALIZE::GLAD_INIT_FAILED" << std::endl;
         glfwTerminate();
-        exit(EXIT_FAILURE);
+        PRINT_ERROR("GLAD initialization failed", true);
     }
 
     glViewport(0, 0, window_width, window_height);
 
-    //                                  FreeType initialization
-    // -------------------------------------------------------------------------------------------
+    
+    // *                                  FreeType initialization
+    // * -------------------------------------------------------------------------------------------
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -75,28 +75,28 @@ auto OpenGL::initialize() -> void
     FT_Library ft;
     if (FT_Init_FreeType(&ft))
     {
-        std::cerr << "ERROR::FREETYPE::INITIALIZE::LIB_INIT_FAILED" << std::endl;
-        exit(EXIT_FAILURE);
+        glfwTerminate();
+        PRINT_ERROR("FreeType initialization failed", true);
     }
 
     // TODO: Replace hardcoded path to font. Need to refactor CMakeLists for that.
     FT_Face face;
-    if (FT_New_Face(ft, "../src/fonts/arial.ttf", 0, &face))
+    const char* font_path = "../src/fonts/arial.ttf";
+    if (FT_New_Face(ft, font_path, 0, &face))
     {
-        std::cerr << "ERROR::FREETYPE::INITIALIZE::FONT_LOAD_FAILED" << std::endl;
-        exit(EXIT_FAILURE);
+        glfwTerminate();
+        PRINT_ERROR("Font load failed", true, "Path to font: '{}'", font_path);
     }
 
     FT_Set_Pixel_Sizes(face, 0, 48);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    std::string alphabet = " !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-
-    for (auto& c : alphabet) {
+    // * Unicode symbols cannot be loaded with this approach. Using ASCII for now.
+    // std::string alphabet = " !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+    for (unsigned char c = 0; c < 128; ++c) {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            std::cerr << "ERROR::FREETYPE::INITIALIZE::GLYPH_LOAD_FAILED" << std::endl;
-            std::cerr << "Glyph: " << c << std::endl;
+            PRINT_ERROR("Glyph load failed", false, "Glyph: '{}'", c);
             continue;
         }
 
@@ -133,51 +133,6 @@ auto OpenGL::initialize() -> void
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
-
-    glGenVertexArrays(1, &text_VAO);
-    glGenBuffers(1, &text_VBO);
-    glBindVertexArray(text_VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, text_VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-}
-
-// ! Candidate for deletion cause we'll need only one window
-auto OpenGL::create_window(int width, int height, const char* title) -> GLFWwindow*
-{
-    GLFWwindow* window;
-    window = glfwCreateWindow(width, height, title, nullptr, nullptr);
-
-    // Если не удалось создать окно
-    if (!window)
-    {
-        std::cerr << "ERROR::OPENGL::CREATE_WINDOW::FAILED" << std::endl;
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
-
-    // Установка текущего контекста OpenGL
-    glfwMakeContextCurrent(window);
-
-    // Настройка размеров вьюпорта
-    glViewport(0, 0, width, height);
-
-    window_width = width;
-    window_height = height;
-
-    glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
-
-    return window;
-}
-
-// ! Candidate for deletion cause we'll need only one window.
-// ! It's functionality will be replaced with OpenGL::shutdown()
-auto OpenGL::destroy_window(GLFWwindow* window) -> void
-{
-    glfwDestroyWindow(window);
 }
 
 auto OpenGL::get_window() -> GLFWwindow*
@@ -197,48 +152,9 @@ auto OpenGL::get_shader(const char* name) -> Shader*
     return shaders[name];
 }
 
-auto OpenGL::render_text(Shader& shader, const std::string& text, float x, float y, float scale, glm::vec3 color) -> void
+auto OpenGL::get_char(char c) -> const Character*
 {
-    shader.use();
-    shader.set_vec3("text_color", color);
-
-    glm::mat4 projection = glm::ortho(0.0f, (GLfloat) window_width, 0.0f, (GLfloat) window_height);
-    shader.set_mat4("projection", projection);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(text_VAO);
-
-    for (auto& c : text)
-    {
-        Character ch = characters[c];
-
-        float x_pos = x + (GLfloat) ch.bearing.x * scale;
-        float y_pos = y - (GLfloat) (ch.size.y - ch.bearing.y) * scale;
-
-        float width  = (GLfloat) ch.size.x * scale;
-        float height = (GLfloat) ch.size.y * scale;
-
-        float vertices[] = {
-                x_pos,          y_pos + height,     0.0f, 0.0f,
-                x_pos,          y_pos,              0.0f, 1.0f,
-                x_pos + width,  y_pos,              1.0f, 1.0f,
-
-                x_pos,          y_pos + height,     0.0f, 0.0f,
-                x_pos + width,  y_pos,              1.0f, 1.0f,
-                x_pos + width,  y_pos + height,     1.0f, 0.0f
-        };
-
-        glBindTexture(GL_TEXTURE_2D, ch.texture);
-        glBindBuffer(GL_ARRAY_BUFFER, text_VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        x += (GLfloat) (ch.advance >> 6) * scale;
-    }
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    return &characters[c];
 }
 
 auto OpenGL::get_window_width() -> GLint
@@ -298,10 +214,7 @@ Shader::Shader(const char* vertex_path, const char* fragment_path, const char* g
     }
     catch (std::ifstream::failure& exception)
     {
-        std::cerr << "ERROR::SHADER::CONSTRUCTOR::FILE_READ_ERROR" << std::endl;
-        std::cerr << "Error: " << exception.what() << std::endl;
-        std::cerr << "Code: " << exception.code() << std::endl;
-        exit(EXIT_FAILURE);
+        PRINT_ERROR("Shader file read failed", true, "Details: {}", exception.what());
     }
 
     const GLchar* vertex_code = vertex_code_raw.c_str();
@@ -430,9 +343,7 @@ auto Shader::check_compile_errors(GLuint target, const std::string&& type) -> vo
         if (!success)
         {
             glGetShaderInfoLog(target, 1024, nullptr, log);
-            std::cerr << "ERROR::SHADER::CONSTRUCTOR::COMPILATION_FAILED" << std::endl;
-            std::cerr << "Shader: " << type << std::endl;
-            exit(EXIT_FAILURE);
+            PRINT_ERROR("Shader compilation failed", true, "Shader: {} \nLog: {}", type, log);
         }
     }
     else if (type == "PROGRAM")
@@ -441,12 +352,11 @@ auto Shader::check_compile_errors(GLuint target, const std::string&& type) -> vo
         if (!success)
         {
             glGetProgramInfoLog(target, 1024, nullptr, log);
-            std::cerr << "ERROR::SHADER::CONSTRUCTOR::PROGRAM_LINK_FAILED" << std::endl;
-            exit(EXIT_FAILURE);
+            PRINT_ERROR("Shader program linking failed", true, "Log: {}", log);
         }
     }
     else
     {
-        std::cerr << "WARNING::SHADER::CONSTRUCTOR::UNKNOWN_TARGET_TYPE" << std::endl;
+        PRINT_ERROR("Unknown type specified", false, "Type: {}", type);
     }
 }
