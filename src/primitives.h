@@ -64,3 +64,21 @@ private:
     glm::vec3   color;          // [0..1] RGB
     GLfloat     width;          // [0..50] px
 };
+
+class Text : public Primitive
+{
+public:
+    Text(const char* text, glm::vec2 position, GLfloat size, glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f));
+    ~Text() override;
+
+    auto draw() -> void override;
+
+private:
+    Shader*     shader;
+    std::string text;
+    GLuint      VAO;
+    GLuint      VBO;
+    glm::vec2   position;
+    glm::vec3   color;          // [0..1] RGB
+    GLfloat     size;
+};

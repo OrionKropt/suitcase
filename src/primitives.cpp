@@ -50,8 +50,6 @@ Point::Point(GLfloat point_x, GLfloat point_y, GLfloat width, GLfloat R, GLfloat
 
 Point::~Point()
 {
-    delete shader;
-
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 }
@@ -124,8 +122,6 @@ Line::Line(GLfloat start_x, GLfloat start_y, GLfloat end_x, GLfloat end_y, GLflo
 
 Line::~Line()
 {
-    delete shader;
-
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 }
@@ -163,4 +159,79 @@ auto Line::set_shader(Shader* new_shader) -> void
 auto Line::set_shader(const char* shader_name) -> void
 {
     shader = opengl.get_shader(shader_name);
+}
+
+
+Text::Text(const char* text, glm::vec2 position, GLfloat size, glm::vec3 color)
+{
+    this->text     = text;
+    this->position = position;
+    this->size     = size;
+    this->color    = color;
+
+    shader = opengl.get_shader("text");
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+Text::~Text()
+{
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+}
+
+auto Text::draw() -> void
+{
+    shader->use();
+    shader->set_vec3("text_color", color);
+
+    glm::mat4 projection = glm::ortho(0.0f, (GLfloat) opengl.get_window_width(),
+                                      0.0f, (GLfloat) opengl.get_window_height());
+    shader->set_mat4("projection", projection);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(VAO);
+
+    GLfloat x = position.x;
+    GLfloat y = position.y;
+
+    for (const auto& c : text)
+    {
+        auto ch = opengl.get_char(c);  // auto cause Character is private OpenGL structure
+
+        GLfloat x_pos = x + (GLfloat) ch->bearing.x * size;
+        GLfloat y_pos = y - (GLfloat) (ch->size.y - ch->bearing.y) * size;
+
+        GLfloat width  = (GLfloat) ch->size.x * size;
+        GLfloat height = (GLfloat) ch->size.y * size;
+
+        GLfloat vertices[] = {
+                x_pos,          y_pos + height,     0.0f, 0.0f,
+                x_pos,          y_pos,              0.0f, 1.0f,
+                x_pos + width,  y_pos,              1.0f, 1.0f,
+
+                x_pos,          y_pos + height,     0.0f, 0.0f,
+                x_pos + width,  y_pos,              1.0f, 1.0f,
+                x_pos + width,  y_pos + height,     1.0f, 0.0f
+        };
+
+        glBindTexture(GL_TEXTURE_2D, ch->texture);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        x += (GLfloat) (ch->advance >> 6) * size;
+    }
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
