@@ -24,8 +24,7 @@ add_executable(${PROJECT_NAME} 	${_SOURCES}
 		${_HEADERS_HPP})
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libfreetype/lib/freetyped.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libmodbus/dll/modbus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libmodbus/dll/project 3.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${_SOURCES}
 		${_HEADERS}
@@ -43,7 +42,7 @@ list(REMOVE_DUPLICATES _INCLUDE_DIRS)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${_INCLUDE_DIRS})
 
-set(MODBUS_LIB   "${CMAKE_CURRENT_LIST_DIR}/src/libmodbus/lib/ws2_32.lib")
+set(MODBUS_LIB   "${CMAKE_CURRENT_LIST_DIR}/src/libmodbus/lib/ModBus.lib")
 set(FREETYPE_LIB "${CMAKE_CURRENT_LIST_DIR}/src/libfreetype/lib/freetyped.lib")
 
 # Choose OpenGL lib depending on compiler
