@@ -1,6 +1,10 @@
 #include "data_logger.h"
 #include <fstream>
 #include <format>
+#include <iostream>
+
+#include "error.h"
+
 
 Data_logger::Data_logger() : ctx(nullptr), real_power("P", "kW"),
 apparent_power("S", "kVA"),
@@ -17,9 +21,7 @@ Data_logger::~Data_logger()
 
 auto Data_logger::init() -> void
 {
-
-	
-	sprintf(setup.port, "\COM2");
+	sprintf(setup.port, "\COM1");
 	setup.port_speed = 19200;
 	setup.parity = 'N';
 	setup.data_bits = 8;
@@ -68,28 +70,42 @@ auto Data_logger::init() -> void
 
 	regs_init();
 
-	is_float = true;
+	is_float = false;
 }
 
 auto Data_logger::read_data() -> int
 {
-	read_power(real_power);
-//	if (
-//		-1 == read_power(real_power) ||
-//		-1 == read_power(apparent_power) ||
-//		-1 == read_power(reactive_power)
-//		)
-//	{
-//#ifdef DEBUG
-//		std::cerr << "Error reading data\n";
-//		std::cerr << "Data_logger::read_data()\n";
-//#endif // DEBUG
-//
-//		return -1;
-//	}
+	int res = 0;
+	res = read_power(real_power);
+	if (res == -1)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("Error reading data", false)
+#endif // DEBUG
+			return -1;
+	}
+	res = read_power(apparent_power);
+
+	if (res == -1)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("Error reading data", false)
+#endif // DEBUG
+			return -1;
+	}
+
+	res = read_power(reactive_power);
+	
+	if (res == -1)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("Error reading data", false)
+#endif // DEBUG
+		return -1;
+	}
 	
 #ifdef DEBUG
-	std::cout << "Successful reading\n";
+	std::cout << "Successful reading!\n";
 #endif // DEBUG
 	return 0;
 }
@@ -148,7 +164,12 @@ auto Data_logger::regs_init() -> void
 	apparent_power.demand.int_regs.peak = APPARENT_POWER_TOTAL_DEMAND_PEAK_INT;
 	
 	// float
+	apparent_power.float_regs.A = APPARENT_POWER_A_FLOAT;
+	apparent_power.float_regs.B = APPARENT_POWER_B_FLOAT;
+	apparent_power.float_regs.C = APPARENT_POWER_C_FLOAT;
 	apparent_power.float_regs.total = APPARENT_POWER_TOTAL_FLOAT;
+	apparent_power.float_regs.min = APPARENT_POWER_TOTAL_MIN_FLOAT;
+	apparent_power.float_regs.max = APPARENT_POWER_TOTAL_MAX_FLOAT;
 	
 	// ----------reactive_power----------
 	// int
@@ -162,7 +183,32 @@ auto Data_logger::regs_init() -> void
 	reactive_power.demand.int_regs.peak = REACTIVE_POWER_TOTAL_DEMAND_PEAK_INT;
 
 	// float
+	reactive_power.float_regs.A = REACTIVE_POWER_A_FLOAT;
+	reactive_power.float_regs.B = REACTIVE_POWER_B_FLOAT;
+	reactive_power.float_regs.C = REACTIVE_POWER_C_FLOAT;
 	reactive_power.float_regs.total = REACTIVE_POWER_TOTAL_FLOAT;
+	reactive_power.float_regs.min = REACTIVE_POWER_TOTAL_MIN_FLOAT;
+	reactive_power.float_regs.max = REACTIVE_POWER_TOTAL_MAX_FLOAT;
+
+	// ----------demand_power----------
+	// real
+	real_power.demand.int_regs.total = REAL_POWER_TOTAL_DEMAND_PRESENT_INT;
+	real_power.demand.int_regs.peak = REAL_POWER_TOTAL_DEMAND_PEAK_INT;
+	real_power.demand.float_regs.total = REAL_POWER_TOTAL_DEMAND_PRESENT_FLOAT;
+	real_power.demand.float_regs.peak = REAL_POWER_TOTAL_DEMAND_PEAK_FLOAT;
+
+	// apparent
+	apparent_power.demand.int_regs.total = APPARENT_POWER_TOTAL_DEMAND_PRESENT_INT;
+	apparent_power.demand.int_regs.peak = APPARENT_POWER_TOTAL_DEMAND_PEAK_INT;
+	apparent_power.demand.float_regs.total = APPARENT_POWER_TOTAL_DEMAND_PRESENT_FLOAT;
+	apparent_power.demand.float_regs.peak = APPARENT_POWER_TOTAL_DEMAND_PEAK_FLOAT;
+
+	// reactive
+	reactive_power.demand.int_regs.total = REACTIVE_POWER_TOTAL_DEMAND_PRESENT_INT;
+	reactive_power.demand.int_regs.peak = REACTIVE_POWER_TOTAL_DEMAND_PEAK_INT;
+	reactive_power.demand.float_regs.total = REACTIVE_POWER_TOTAL_DEMAND_PRESENT_FLOAT;
+	reactive_power.demand.float_regs.peak = REACTIVE_POWER_TOTAL_DEMAND_PEAK_FLOAT;
+
 }
 
 
@@ -238,13 +284,6 @@ auto Data_logger::read_power(Power& power) -> int
 		memcpy_s(power.data[power.float_regs.A], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
 		memcpy_s(power.data[power.float_regs.B], sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
 		memcpy_s(power.data[power.float_regs.C], sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
-		
-		/*if (-1 == modbus_read_registers(ctx, power.float_regs.total, 2, buf))
-{
-			register_read_error(power.float_regs.total);
-			return -1;
-		}
-		memcpy_s(power.data[power.float_regs.total], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);*/
 
 		// min max
 		if (-1 == modbus_read_registers(ctx, power.float_regs.min, 2, buf))
@@ -260,6 +299,22 @@ auto Data_logger::read_power(Power& power) -> int
 			return -1;
 		}
 		memcpy_s(power.data[power.float_regs.max], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+
+		// demand
+		if (-1 == modbus_read_registers(ctx, power.demand.float_regs.total, 2, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", power.demand.float_regs.total)
+			return -1;
+		}
+		memcpy_s(power.demand.data[power.demand.float_regs.total], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+
+		if (-1 == modbus_read_registers(ctx, power.demand.float_regs.peak, 2, buf))
+		{
+
+			PRINT_ERROR("Register read failed", false, "Register: {}", power.demand.float_regs.peak)
+			return -1;
+		}
+		memcpy_s(power.demand.data[power.demand.float_regs.peak], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
 	}
 	
 	return 0;
@@ -290,12 +345,14 @@ auto Data_logger::write_power(Power& power) -> void const
 {
 	float A = 0, B = 0, C = 0;
 	float min = 0, max = 0, total = 0;
+	int pow = setup.scale_w[0];
+	int scale = fast_pow(10, pow);
 	if (!is_float)
 	{
-		A = real_power.data[power.int_regs.A][0];
-		B = real_power.data[power.int_regs.B][0];
-		C = real_power.data[power.int_regs.C][0];
-		total = power.data[power.int_regs.total][0];
+		A = (float) real_power.data[power.int_regs.A][0] / scale;
+		B = (float) real_power.data[power.int_regs.B][0] / scale;
+		C = (float) real_power.data[power.int_regs.C][0] / scale;
+		total = (float) power.data[power.int_regs.total][0] / scale;
 		min = power.data[power.int_regs.min][0];
 		max = power.data[power.int_regs.max][0];
 	}
@@ -321,21 +378,37 @@ auto Data_logger::write_power(Power& power) -> void const
 auto Data_logger::write_demand_power(Power& power) -> void const
 {
 	float total = 0, peak = 0;
+	int pow = setup.scale_w[0];
+	int scale = fast_pow(10, pow);
 	if (!is_float)
 	{
-		total = power.demand.data[power.demand.int_regs.total][0];
-		peak = power.demand.data[power.demand.int_regs.peak][0];
+		total = (float) power.demand.data[power.demand.int_regs.total][0] / scale;
+		peak = (float) power.demand.data[power.demand.int_regs.peak][0] / scale;
 	}
 	else
 	{
-		total = modbus_get_float_abcd( (uint16_t*) power.data[power.float_regs.total]);
-		peak = modbus_get_float_abcd( (uint16_t*) power.data[power.float_regs.peak]);
+		total = modbus_get_float_abcd( (uint16_t*) power.demand.data[power.demand.float_regs.total]);
+		peak = modbus_get_float_abcd( (uint16_t*) power.demand.data[power.demand.float_regs.peak]);
 	}
 	std::cout << power.name << ", " << power.metric << '\n';
 	std::cout << "Total " << total << ' ' << power.metric << '\n';
-	std::cout << "Peak " << power.demand.data[power.demand.int_regs.peak][0] << ' ' << power.metric << "\n\n";
+	std::cout << "Peak " << peak << ' ' << power.metric << "\n\n";
+}
 
+auto Data_logger::fast_pow(const int& n, const int& m) -> int
+{
+	if (m == 0) return 1;
 	
+	if (m % 2 == 0)
+	{
+		int a = fast_pow(n, m / 2);
+		return a * a;
+	}
+	else
+	{
+		int a = fast_pow(n, (m - 1) / 2);
+		return a * a * n;
+	}
 }
 
 

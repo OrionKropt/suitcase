@@ -9,11 +9,11 @@ class Setup
 {
 public:
 	uint16_t mode[2];                        // 0 = IEC, 1 - IEEE
-
-	int16_t scale_i[2]{ 0 };                     // current
-	int16_t scale_v[2]{ 0 };                     // voltage
-	int16_t scale_w[2]{ 0 };                     // power
-	int16_t scale_e[2]{ 0 };                     // energy
+	
+	int16_t scale_i[2]{ 0 };                     // current, power of 10
+	int16_t scale_v[2]{ 0 };                     // voltage, power of 10
+	int16_t scale_w[2]{ 0 };                     // power, power of 10
+	int16_t scale_e[2]{ 0 };                     // energy, power of 10
 
 	
 	// This combination timer counts the total time for which the absolute current on at least one phase is > 0.1Amp.
