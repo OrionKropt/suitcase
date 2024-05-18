@@ -73,19 +73,10 @@ auto Data_logger::init() -> void
 	is_float = false;
 }
 
-auto Data_logger::read_data() -> int
+auto Data_logger::read_data_from_device() -> int
 {
 	int res = 0;
-	res = read_power(real_power);
-	if (res == -1)
-	{
-#ifdef DEBUG
-		PRINT_ERROR("Error reading data", false)
-#endif // DEBUG
-			return -1;
-	}
-	res = read_power(apparent_power);
-
+	res = read_power_from_device(real_power);
 	if (res == -1)
 	{
 #ifdef DEBUG
@@ -94,8 +85,16 @@ auto Data_logger::read_data() -> int
 			return -1;
 	}
 
-	res = read_power(reactive_power);
-	
+	res = read_power_from_device(apparent_power);
+	if (res == -1)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("Error reading data", false)
+#endif // DEBUG
+			return -1;
+	}
+
+	res = read_power_from_device(reactive_power);
 	if (res == -1)
 	{
 #ifdef DEBUG
@@ -110,26 +109,26 @@ auto Data_logger::read_data() -> int
 	return 0;
 }
 
-auto Data_logger::write_data() -> void const 
-	{
+auto Data_logger::write_data_to_file() -> void const
+{
 	//
 		#ifdef DEBUG
 	std::cout << "\nPOWER\n";
 #endif // DEBUG
 
-	write_power(real_power);
-	write_power(apparent_power);
-	write_power(reactive_power);
+	write_power_to_file(real_power);
+	write_power_to_file(apparent_power);
+	write_power_to_file(reactive_power);
 
 	//
 #ifdef DEBUG
 	std::cout << "\nDEMAND POWER\n";
 		#endif // DEBUG
 
-	write_demand_power(real_power);
-	write_demand_power(apparent_power);
-	write_demand_power(reactive_power);
-	}
+	write_demand_power_to_file(real_power);
+	write_demand_power_to_file(apparent_power);
+	write_demand_power_to_file(reactive_power);
+}
 
 auto Data_logger::regs_init() -> void
 {
@@ -212,7 +211,7 @@ auto Data_logger::regs_init() -> void
 }
 
 
-auto Data_logger::read_power(Power& power) -> int
+auto Data_logger::read_power_from_device(Power& power) -> int
 {
 	
 	if (!is_float)
@@ -341,7 +340,8 @@ auto Data_logger::print_setup() -> void const
 
 }
 
-auto Data_logger::write_power(Power& power) -> void const
+
+auto Data_logger::write_power_to_file(Power& power) -> void const
 {
 	float A = 0, B = 0, C = 0;
 	float min = 0, max = 0, total = 0;
@@ -375,7 +375,7 @@ auto Data_logger::write_power(Power& power) -> void const
 #endif // DEBUG
 }
 
-auto Data_logger::write_demand_power(Power& power) -> void const
+auto Data_logger::write_demand_power_to_file(Power& power) -> void const
 {
 	float total = 0, peak = 0;
 	int pow = setup.scale_w[0];

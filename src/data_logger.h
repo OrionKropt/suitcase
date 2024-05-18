@@ -20,9 +20,9 @@ public:
 	~Data_logger();
 	auto init() -> void;
 
-	auto read_data() -> int;
+	auto read_data_from_device() -> int;
 
-	auto write_data() -> void const;
+	auto write_data_to_file() -> void const;
 
 	auto print_setup() -> void const;
 
@@ -30,10 +30,9 @@ private:
 
 	auto regs_init() -> void;
 
-	auto read_power(Power& power) -> int;
-	auto write_power(Power& power) -> void const;
-	auto write_demand_power(Power& power) -> void const;
-	auto register_read_error(uint16_t reg) -> void;
+	auto read_power_from_device(Power& power) -> int;
+	auto write_power_to_file(Power& power) -> void const;
+	auto write_demand_power_to_file(Power& power) -> void const;
 
 	auto fast_pow(const int& n, const int& m) -> int;
 	Setup setup;
