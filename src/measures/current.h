@@ -22,6 +22,13 @@ public:
 	uint16_t B_demand_peak[2];
 	uint16_t C_demand_peak[2];
 
-	uint16_t max[2];
-	uint16_t min[2];
+	uint16_t A_max[2];
+	uint16_t A_min[2];
+	
+	uint16_t B_max[2];
+	uint16_t B_min[2];
+
+	uint16_t C_max[2];
+	uint16_t C_min[2];
+	
 };

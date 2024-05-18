@@ -319,6 +319,75 @@ auto Data_logger::read_power_from_device(Power& power) -> int
 	return 0;
 }
 
+auto Data_logger::read_current_from_device() -> int
+{
+	if (!is_float)
+	{
+		// ---------INT----------
+		
+		// phase reading
+		if (-1 == modbus_read_registers(ctx, CURRENT_A_INT, 4, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_A_INT)
+			return -1;
+		}
+		current.A[0] = buf[0];
+		current.B[0] = buf[1];
+		current.C[0] = buf[2];
+		current.N[0] = buf[3];
+
+		if (-1 == modbus_read_registers(ctx, CURRENT_3P_AVERAGE_INT, 1, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_3P_AVERAGE_INT)
+			return -1;
+		}
+		current.phase_3[0] = buf[0];
+
+		// demand per phase
+		if (-1 == modbus_read_registers(ctx, CURRENT_A_DEMAND_PRESENT_INT, 3, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_A_DEMAND_PRESENT_INT)
+			return -1;
+		}
+		current.A_demand[0] = buf[0];
+		current.B_demand[0] = buf[1];
+		current.C_demand[0] = buf[2];
+
+		// demand peak per phase
+		if (-1 == modbus_read_registers(ctx, CURRENT_A_DEMAND_PEAK_INT, 3, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_A_DEMAND_PEAK_INT)
+			return -1;
+		}
+		current.A_demand_peak[0] = buf[0];
+		current.B_demand_peak[0] = buf[1];
+		current.C_demand_peak[0] = buf[2];
+
+		// max min
+		if (-1 == modbus_read_registers(ctx, CURRENT_A_MIN_INT, 3, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_A_MIN_INT)
+			return -1;
+		}
+		current.A_min[0] = buf[0];
+		current.B_min[0] = buf[1];
+		current.C_min[0] = buf[2];
+
+		if (-1 == modbus_read_registers(ctx, CURRENT_A_MAX_INT, 3, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_A_MAX_INT)
+			return -1;
+		}
+		current.A_max[0] = buf[0];
+		current.B_max[0] = buf[1];
+		current.C_max[0] = buf[2];
+	}
+	else
+	{
+
+	}
+}
+
 auto Data_logger::print_setup() -> void const
 {
 #ifdef DEBUG
@@ -393,6 +462,16 @@ auto Data_logger::write_demand_power_to_file(Power& power) -> void const
 	std::cout << power.name << ", " << power.metric << '\n';
 	std::cout << "Total " << total << ' ' << power.metric << '\n';
 	std::cout << "Peak " << peak << ' ' << power.metric << "\n\n";
+}
+
+auto Data_logger::write_current_to_file() -> void const
+{
+	float phase_3 = 0;
+	float A = 0, B = 0, C = 0, N = 0;
+	float A_demand = 0, B_demand = 0, C_demand = 0;
+	float A_demand_peak = 0, C_demand_peak = 0, B_demand_peak = 0;
+	float A_max = 0, A_min = 0, B_max = 0, B_min = 0, C_max = 0, C_min = 0;
+
 }
 
 auto Data_logger::fast_pow(const int& n, const int& m) -> int
