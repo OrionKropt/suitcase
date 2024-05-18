@@ -9,18 +9,18 @@ Primitive::~Primitive() = default;
 auto Primitive::draw() -> void {}
 
 
-Point::Point(glm::vec2 point, GLfloat width, glm::vec3 color)
+Point::Point(glm::vec2 position, GLfloat width, glm::vec3 color)
 {
-    this->point = point;
+    this->position = position;
     this->width = width;
     this->color = color;
     this->shader = opengl.get_shader("primitives");
 
     GLfloat vertices[] = {
-            point.x - width, point.y - width,
-            point.x - width, point.y + width,
-            point.x + width, point.y + width,
-            point.x + width, point.y - width
+            position.x - width, position.y - width,
+            position.x - width, position.y + width,
+            position.x + width, position.y + width,
+            position.x + width, position.y - width
     };
 
     GLuint indices[] = {
@@ -61,6 +61,37 @@ auto Point::draw() -> void
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+auto Point::move(GLfloat dx, GLfloat dy) -> void
+{
+    set_position(position.x + dx, position.y + dy);
+}
+
+auto Point::set_position(glm::vec2 new_position) -> void
+{
+    if (position == new_position)
+    {
+        return;
+    }
+
+    position = new_position;
+
+    GLfloat vertices[] = {
+            new_position.x - width, new_position.y - width,
+            new_position.x - width, new_position.y + width,
+            new_position.x + width, new_position.y + width,
+            new_position.x + width, new_position.y - width
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+auto Point::set_position(GLfloat new_x, GLfloat new_y) -> void
+{
+    set_position(glm::vec2(new_x, new_y));
 }
 
 auto Point::set_color(glm::vec3 new_color) -> void
@@ -136,6 +167,84 @@ auto Line::draw() -> void
     glBindVertexArray(0);
 }
 
+auto Line::move(GLfloat dx, GLfloat dy) -> void
+{
+    set_position(start.x + dx, start.y + dy, end.x + dx, end.y + dy);
+}
+
+auto Line::set_position(glm::vec2 new_start, glm::vec2 new_end) -> void
+{
+    if (start == new_start && end == new_end)
+    {
+        return;
+    }
+
+    start = new_start;
+    end = new_end;
+
+    GLfloat vertices[] = {
+            new_start.x, new_start.y,
+            new_end.x,   new_end.y
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+auto Line::set_position(GLfloat new_start_x, GLfloat new_start_y, GLfloat new_end_x, GLfloat new_end_y) -> void
+{
+    set_position(glm::vec2(new_start_x, new_start_y), glm::vec2(new_end_x, new_end_y));
+}
+
+auto Line::set_start(glm::vec2 new_start) -> void
+{
+    if (start == new_start)
+    {
+        return;
+    }
+
+    start = new_start;
+
+    GLfloat vertices[] = {
+            new_start.x, new_start.y,
+            end.x,       end.y
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+auto Line::set_start(GLfloat new_start_x, GLfloat new_start_y) -> void
+{
+    set_start(glm::vec2(new_start_x, new_start_y));
+}
+
+auto Line::set_end(glm::vec2 new_end) -> void
+{
+    if (end == new_end)
+    {
+        return;
+    }
+
+    end = new_end;
+
+    GLfloat vertices[] = {
+            start.x,   start.y,
+            new_end.x, new_end.y
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+auto Line::set_end(GLfloat new_end_x, GLfloat new_end_y) -> void
+{
+    set_end(glm::vec2(new_end_x, new_end_y));
+}
+
 auto Line::set_color(glm::vec3 new_color) -> void
 {
     color = new_color;
@@ -181,6 +290,9 @@ Text::Text(const char* text, glm::vec2 position, GLfloat size, glm::vec3 color)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
+
+Text::Text(const char* text, GLfloat x, GLfloat y, GLfloat size, GLfloat R, GLfloat G, GLfloat B)
+    : Text(text, glm::vec2(x, y), size, glm::vec3(R, G, B)) {}
 
 Text::~Text()
 {
@@ -234,4 +346,54 @@ auto Text::draw() -> void
     }
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+auto Text::move(GLfloat dx, GLfloat dy) -> void
+{
+    set_position(position.x + dx, position.y + dy);
+}
+
+auto Text::set_position(glm::vec2 new_position) -> void
+{
+    if (position == new_position)
+    {
+        return;
+    }
+
+    position = new_position;
+}
+
+auto Text::set_position(GLfloat new_x, GLfloat new_y) -> void
+{
+    set_position(glm::vec2(new_x, new_y));
+}
+
+auto Text::set_text(const char* text) -> void
+{
+    this->text = text;
+}
+
+auto Text::set_color(glm::vec3 new_color) -> void
+{
+    color = new_color;
+}
+
+auto Text::set_color(GLfloat R, GLfloat G, GLfloat B) -> void
+{
+    color = glm::vec3(R, G, B);
+}
+
+auto Text::set_size(GLfloat new_size) -> void
+{
+    size = new_size;
+}
+
+auto Text::set_shader(Shader* new_shader) -> void
+{
+    shader = new_shader;
+}
+
+auto Text::set_shader(const char* shader_name) -> void
+{
+    shader = opengl.get_shader(shader_name);
 }
