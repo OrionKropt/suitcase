@@ -11,7 +11,7 @@ auto print_error(const char* file, unsigned int line, const char* function,
 	std::cerr << '\t' << file << ", line " << line << '\n';
 	if (extra_print != nullptr)
 	{
-		std::cerr << extra_print;
+		std::cerr << extra_print << '\n';
 	}
 	if (exit)
 	{
