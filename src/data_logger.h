@@ -31,8 +31,10 @@ private:
 	auto regs_init() -> void;
 
 	auto read_power_from_device(Power& power) -> int;
+	auto read_current_from_device() -> int;
 	auto write_power_to_file(Power& power) -> void const;
 	auto write_demand_power_to_file(Power& power) -> void const;
+	auto write_current_to_file() -> void const;
 
 	auto fast_pow(const int& n, const int& m) -> int;
 	Setup setup;
