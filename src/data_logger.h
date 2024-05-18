@@ -7,14 +7,11 @@
 #include "current.h"
 #include "voltage.h"
 #include "setup.h"
-#include "error.h"
+
+
+
 
 #define DEBUG
-
-#if DEBUG 
-#include <iostream>
-#endif // DEBUG
-
 
 class Data_logger
 {
@@ -38,6 +35,7 @@ private:
 	auto write_demand_power(Power& power) -> void const;
 	auto register_read_error(uint16_t reg) -> void;
 
+	auto fast_pow(const int& n, const int& m) -> int;
 	Setup setup;
 	Power real_power;
 	Power apparent_power;
