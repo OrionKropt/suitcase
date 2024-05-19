@@ -9,12 +9,120 @@ Primitive::~Primitive() = default;
 auto Primitive::draw() -> void {}
 
 
+Triangle::Triangle(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3, glm::vec3 color)
+{
+    this->v1 = v1;
+    this->v2 = v2;
+    this->v3 = v3;
+    this->color = color;
+
+    position = glm::vec2(
+            (std::min(v1.x, std::min(v2.x, v3.x)) + std::max(v1.x, std::max(v2.x, v3.x))) / 2,
+            (std::min(v1.y, std::min(v2.y, v3.y)) + std::max(v1.y, std::max(v2.y, v3.y))) / 2
+    );
+
+    shader = opengl.get_shader("primitives");
+
+    GLfloat vertices[] = {
+            v1.x, v1.y,
+            v2.x, v2.y,
+            v3.x, v3.y
+    };
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*) 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+Triangle::Triangle(GLfloat v1_x, GLfloat v1_y, GLfloat v2_x, GLfloat v2_y, GLfloat v3_x, GLfloat v3_y, GLfloat R, GLfloat G, GLfloat B)
+    : Triangle(glm::vec2(v1_x, v1_y), glm::vec2(v2_x, v2_y), glm::vec2(v3_x, v3_y), glm::vec3(R, G, B)) {}
+
+Triangle::~Triangle()
+{
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+}
+
+auto Triangle::draw() -> void
+{
+    shader->use();
+    shader->set_vec3("color", color);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+}
+
+auto Triangle::move(GLfloat dx, GLfloat dy) -> void
+{
+    set_position(position.x + dx, position.y + dy);
+}
+
+auto Triangle::set_position(glm::vec2 new_position) -> void
+{
+    if (position == new_position)
+    {
+        return;
+    }
+
+    v1 = (v1 - position) + new_position;
+    v2 = (v2 - position) + new_position;
+    v3 = (v3 - position) + new_position;
+
+    position = new_position;
+
+    GLfloat vertices[] = {
+            v1.x, v1.y,
+            v2.x, v2.y,
+            v3.x, v3.y
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+auto Triangle::set_position(GLfloat new_x, GLfloat new_y) -> void
+{
+    set_position(glm::vec2(new_x, new_y));
+}
+
+auto Triangle::set_color(glm::vec3 new_color) -> void
+{
+    color = new_color;
+}
+
+auto Triangle::set_color(GLfloat R, GLfloat G, GLfloat B) -> void
+{
+    set_color(glm::vec3(R, G, B));
+}
+
+auto Triangle::set_shader(Shader* new_shader) -> void
+{
+    shader = new_shader;
+}
+
+auto Triangle::set_shader(const char* shader_name) -> void
+{
+    shader = opengl.get_shader(shader_name);
+}
+
+
 Point::Point(glm::vec2 position, GLfloat width, glm::vec3 color)
 {
     this->position = position;
-    this->width = width;
-    this->color = color;
-    this->shader = opengl.get_shader("primitives");
+    this->width    = width;
+    this->color    = color;
+
+    shader = opengl.get_shader("primitives");
 
     GLfloat vertices[] = {
             position.x - width, position.y - width,
@@ -127,7 +235,7 @@ Line::Line(glm::vec2 start, glm::vec2 end, GLfloat width, glm::vec3 color)
     this->color = color;
     this->width = width;
 
-    shader = opengl.get_shader("primitives");
+    shader = opengl.get_shader("line");
 
     GLfloat vertices[] = {
             start.x, start.y,
@@ -162,6 +270,7 @@ auto Line::draw() -> void
     glLineWidth(width);
     shader->use();
     shader->set_vec3("color", color);
+    shader->set_float("line_width", width);
     glBindVertexArray(VAO);
     glDrawArrays(GL_LINES, 0, 2);
     glBindVertexArray(0);
