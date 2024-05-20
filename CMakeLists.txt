@@ -23,8 +23,7 @@ add_executable(${PROJECT_NAME} 	${_SOURCES}
 		${_SOURCES_C}
 		${_HEADERS_HPP})
 
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libfreetype/lib/freetyped.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${_SOURCES}
 		${_HEADERS}
@@ -47,9 +46,17 @@ set(FREETYPE_LIB "${CMAKE_CURRENT_LIST_DIR}/src/libfreetype/lib/freetyped.lib")
 
 # Choose OpenGL lib depending on compiler
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libfreetype/lib/freetyped.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 	set(OPENGL_LIB "${CMAKE_CURRENT_LIST_DIR}/src/libopengl/lib/libglfw3.a")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	file(MAKE_DIRECTORY "./build/Debug")
+	file(MAKE_DIRECTORY "./build/Release")
 	set(OPENGL_LIB "${CMAKE_CURRENT_LIST_DIR}/src/libopengl/lib/glfw3_mt.lib")
+	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libfreetype/lib/freetyped.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
+	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
+	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libfreetype/lib/freetyped.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Release)
+	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Release)
 else ()
 	message(FATAL_ERROR "Unsupported compiler")
 endif()
@@ -59,3 +66,5 @@ message(STATUS "Using OpenGL library: ${OPENGL_LIB}")
 target_link_libraries(${PROJECT_NAME} 	${MODBUS_LIB}
 		${OPENGL_LIB}
 		${FREETYPE_LIB})
+
+
