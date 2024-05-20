@@ -380,11 +380,12 @@ auto Line::set_shader(const char* shader_name) -> void
 }
 
 
-Text::Text(const char* text, glm::vec2 position, GLfloat size, glm::vec3 color)
+Text::Text(const char* text, glm::vec2 position, GLfloat size, GLfloat rotation, glm::vec3 color)
 {
     this->text     = text;
     this->position = position;
     this->size     = size;
+    this->rotation = rotation;
     this->color    = color;
 
     shader = opengl.get_shader("text");
@@ -400,8 +401,8 @@ Text::Text(const char* text, glm::vec2 position, GLfloat size, glm::vec3 color)
     glBindVertexArray(0);
 }
 
-Text::Text(const char* text, GLfloat x, GLfloat y, GLfloat size, GLfloat R, GLfloat G, GLfloat B)
-    : Text(text, glm::vec2(x, y), size, glm::vec3(R, G, B)) {}
+Text::Text(const char* text, GLfloat x, GLfloat y, GLfloat size, GLfloat rotation, GLfloat R, GLfloat G, GLfloat B)
+    : Text(text, glm::vec2(x, y), size, rotation, glm::vec3(R, G, B)) {}
 
 Text::~Text()
 {
@@ -411,18 +412,29 @@ Text::~Text()
 
 auto Text::draw() -> void
 {
+    GLfloat window_width  = opengl.get_window_width();
+    GLfloat window_height = opengl.get_window_height();
+
+    GLfloat x_ndc_to_screen = (position.x + 1.0f) / 2.0f * window_width;
+    GLfloat y_ndc_to_screen = (position.y + 1.0f) / 2.0f * window_height;
+
     shader->use();
     shader->set_vec3("text_color", color);
 
-    glm::mat4 projection = glm::ortho(0.0f, (GLfloat) opengl.get_window_width(),
-                                      0.0f, (GLfloat) opengl.get_window_height());
+    // I fucking hate these calculations. I hate them with all my soul and heart.
+    glm::mat4 projection = glm::ortho(0.0f, window_width, 0.0f, window_height);
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x_ndc_to_screen, y_ndc_to_screen, 0.0f));
+    model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::translate(model, glm::vec3(-x_ndc_to_screen, -y_ndc_to_screen, 0.0f));
+
     shader->set_mat4("projection", projection);
+    shader->set_mat4("model", model);
 
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
 
-    GLfloat x = position.x;
-    GLfloat y = position.y;
+    GLfloat x = x_ndc_to_screen;
+    GLfloat y = y_ndc_to_screen;
 
     for (const auto& c : text)
     {

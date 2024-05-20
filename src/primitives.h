@@ -105,8 +105,8 @@ private:
 class Text : public Primitive
 {
 public:
-    Text(const char* text, glm::vec2 position, GLfloat size, glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f));
-    Text(const char* text, GLfloat x, GLfloat y, GLfloat size, GLfloat R = 0.0f, GLfloat G = 0.0f, GLfloat B = 0.0f);
+    Text(const char* text, glm::vec2 position, GLfloat size, GLfloat rotation = 0.0f, glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f));
+    Text(const char* text, GLfloat x, GLfloat y, GLfloat size, GLfloat rotation = 0.0f, GLfloat R = 0.0f, GLfloat G = 0.0f, GLfloat B = 0.0f);
     ~Text() override;
 
     auto draw() -> void override;
@@ -128,4 +128,5 @@ private:
     glm::vec2   position;           // NDC
     glm::vec3   color;
     GLfloat     size;
+    GLfloat     rotation;           // Degrees
 };
