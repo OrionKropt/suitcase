@@ -12,6 +12,7 @@
 
 GLint OpenGL::window_width;
 GLint OpenGL::window_height;
+std::vector<GLboolean> OpenGL::keys = std::vector<GLboolean>(1024, false);
 
 OpenGL::OpenGL() = default;
 
@@ -49,6 +50,7 @@ auto OpenGL::initialize() -> void
         PRINT_ERROR("Window creation failed", true);
     }
 
+    glfwSetKeyCallback(window, key_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
     glfwMakeContextCurrent(window);
 
@@ -79,9 +81,8 @@ auto OpenGL::initialize() -> void
         PRINT_ERROR("FreeType initialization failed", true);
     }
 
-    // TODO: Replace hardcoded path to font. Need to refactor CMakeLists for that.
     FT_Face face;
-    const char* font_path = "../src/fonts/arial.ttf";
+    const char* font_path = "resources/fonts/arial.ttf";
     if (FT_New_Face(ft, font_path, 0, &face))
     {
         glfwTerminate();
@@ -157,6 +158,11 @@ auto OpenGL::get_char(char c) -> const Character*
     return &characters[c];
 }
 
+auto OpenGL::get_key(int key_code) -> GLboolean
+{
+    return keys[key_code];
+}
+
 auto OpenGL::get_window_width() -> GLint
 {
     return window_width;
@@ -165,6 +171,11 @@ auto OpenGL::get_window_width() -> GLint
 auto OpenGL::get_window_height() -> GLint
 {
     return window_height;
+}
+
+auto OpenGL::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void
+{
+    keys[key] = action;
 }
 
 auto OpenGL::framebuffer_resize_callback(GLFWwindow* window, int width, int height) -> void

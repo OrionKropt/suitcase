@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <unordered_map>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -19,13 +20,11 @@ public:
     auto create_shader(const char* name, const char* vertex_file, const char* fragment_file, const char* geometry_file = nullptr) -> Shader*;
     auto get_shader(const char* name) -> Shader*;
     auto get_char(char c) -> const Character*;
+    auto get_key(int key_code) -> GLboolean;
     auto get_window_width() -> GLint;
     auto get_window_height() -> GLint;
 
 private:
-    static GLint window_width;
-    static GLint window_height;
-
     struct Character
     {
         GLuint      texture;
@@ -41,6 +40,11 @@ private:
     OpenGL();
     ~OpenGL();
 
+    static GLint window_width;
+    static GLint window_height;
+    static std::vector<GLboolean> keys;
+
+    static auto key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void;
     static auto framebuffer_resize_callback(GLFWwindow* window, int width, int height) -> void;
 };
 
