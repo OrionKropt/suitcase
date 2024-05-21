@@ -70,7 +70,7 @@ auto Data_logger::init() -> void
 
 	regs_init();
 
-	is_float = false;
+	is_float = true;
 }
 
 auto Data_logger::read_data_from_device() -> int
@@ -114,6 +114,15 @@ auto Data_logger::read_data_from_device() -> int
 		return -1;
 	}
 
+	res = read_voltage_from_device();
+	if (res)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("Error reading data", false)
+#endif // DEBUG
+		return -1;
+	}
+
 #ifdef DEBUG
 	std::cout << "Successful reading!\n";
 #endif // DEBUG
@@ -146,6 +155,12 @@ auto Data_logger::write_data_to_file() -> void const
 #endif // DEBUG
 
 	write_current_to_file();
+
+#ifdef DEBUG
+	std::cout << "\nVOLTAGE\n";
+#endif // DEBUG
+
+	
 }
 
 auto Data_logger::regs_init() -> void
@@ -480,6 +495,160 @@ auto Data_logger::read_current_from_device() -> int
 	return 0;
 }
 
+auto Data_logger::read_voltage_from_device() -> int
+{
+	if (!is_float)
+	{
+		// ---------INT----------
+
+		// phase reading AB BC CA
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AB_INT, 3, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AB_INT)
+			return -1;
+		}
+		voltage.AB[0] = buf[0];
+		voltage.BC[0] = buf[1];
+		voltage.CA[0] = buf[2];
+
+		// average
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_LL_3P_AVERAGE_INT, 2, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_LL_3P_AVERAGE_INT)
+			return -1;
+		}
+		voltage.LL_3P_average[0] = buf[0];
+		voltage.LN_3P_average[0] = buf[1];
+
+		// phase reading AN BN CN
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AN_INT, 3, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AN_INT)
+			return -1;
+		}
+		voltage.AN[0] = buf[0];
+		voltage.BN[0] = buf[1];
+		voltage.CN[0] = buf[2];
+
+		// min max
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AB_MIN_INT, 3, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AB_MIN_INT)
+			return -1;
+		}
+		voltage.min.AB[0] = buf[0];
+		voltage.min.BC[0] = buf[1];
+		voltage.min.CA[0] = buf[2];
+
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AN_MIN_INT, 3, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AN_MIN_INT)
+			return -1;
+		}
+		voltage.min.AN[0] = buf[0];
+		voltage.min.BN[0] = buf[1];
+		voltage.min.CN[0] = buf[2];
+
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AB_MAX_INT, 3, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AB_MAX_INT)
+			return -1;
+		}
+		voltage.max.CN[0] = buf[0];
+		voltage.max.BC[0] = buf[1];
+		voltage.max.CA[0] = buf[2];
+
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AN_MAX_INT, 3, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AN_MAX_INT)
+			return -1;
+		}
+		voltage.max.AN[0] = buf[0];
+		voltage.max.BN[0] = buf[1];
+		voltage.max.CN[0] = buf[2];
+
+		// ---------INT----------
+	}
+	else
+	{
+		// --------FLOAT---------
+
+		// phase reading AB BC CA
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AB_FLOAT, 6, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AB_FLOAT)
+			return -1;
+		}
+		memcpy_s(voltage.AB, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.BC, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.CA, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+
+		// average
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_LL_3P_AVERAGE_FLOAT, 4, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_LL_3P_AVERAGE_FLOAT)
+			return -1;
+		}
+		memcpy_s(voltage.LL_3P_average, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.LN_3P_average, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+
+		// phase reading AN BN CN
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AN_FLOAT, 6, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AN_FLOAT)
+			return -1;
+		}
+		memcpy_s(voltage.AN, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.BN, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.CN, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+
+		// min max
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AB_MIN_FLOAT, 6, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AB_MIN_FLOAT)
+			return -1;
+		}
+		memcpy_s(voltage.min.AB, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.min.BC, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.min.CA, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AN_MIN_FLOAT, 6, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AN_MIN_FLOAT)
+			return -1;
+		}
+		memcpy_s(voltage.min.AN, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.min.BN, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.min.CN, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AB_MAX_FLOAT, 6, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AB_MAX_FLOAT)
+			return -1;
+		}
+		memcpy_s(voltage.max.CN, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.max.BC, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.max.CA, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+
+		if (-1 == modbus_read_registers(ctx, VOLTAGE_AN_MAX_FLOAT, 6, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AN_MAX_FLOAT)
+			return -1;
+		}
+		memcpy_s(voltage.max.AN, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.max.BN, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.max.CN, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+
+		// --------FLOAT---------
+	}
+
+#ifdef DEBUG
+	std::cout << "Voltage reading completed!\n";
+#endif // DEBUG
+
+	return 0;
+}
+
 auto Data_logger::print_setup() -> void const
 {
 #ifdef DEBUG
@@ -630,6 +799,18 @@ auto Data_logger::write_current_to_file() -> void const
 #endif // DEBUG
 
 	
+
+}
+
+auto Data_logger::write_voltage_to_file() -> void const
+{
+	float LL_3P_average = 0, LN_3P_average = 0;
+	float AB = 0, BC = 0, CA = 0;
+	float AN = 0, BN = 0, CN = 0;
+	float AB_max = 0, BC_max = 0, CA_max = 0;
+	float AN_max = 0, BN_max = 0, CN_max = 0;
+	float AB_min = 0, BC_min = 0, CA_min = 0;
+	float AN_min = 0, BN_min = 0, CN_min = 0;
 
 }
 
