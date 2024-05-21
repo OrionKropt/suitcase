@@ -36,6 +36,7 @@ private:
 	auto write_demand_power_to_file(Power& power) -> void const;
 	auto write_current_to_file() -> void const;
 
+
 	auto fast_pow(const int& n, const int& m) -> int;
 	Setup setup;
 	Power real_power;
