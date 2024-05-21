@@ -82,8 +82,9 @@ auto Data_logger::read_data_from_device() -> int
 #ifdef DEBUG
 		PRINT_ERROR("Error reading data", false)
 #endif // DEBUG
-			return -1;
+		return -1;
 	}
+	
 
 	res = read_power_from_device(apparent_power);
 	if (res == -1)
@@ -91,7 +92,7 @@ auto Data_logger::read_data_from_device() -> int
 #ifdef DEBUG
 		PRINT_ERROR("Error reading data", false)
 #endif // DEBUG
-			return -1;
+		return -1;
 	}
 
 	res = read_power_from_device(reactive_power);
@@ -102,17 +103,28 @@ auto Data_logger::read_data_from_device() -> int
 #endif // DEBUG
 		return -1;
 	}
-	
+
+
+	res = read_current_from_device();
+	if (res)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("Error reading data", false)
+#endif // DEBUG
+		return -1;
+	}
+
 #ifdef DEBUG
 	std::cout << "Successful reading!\n";
 #endif // DEBUG
+
 	return 0;
 }
 
 auto Data_logger::write_data_to_file() -> void const
 {
-	//
-		#ifdef DEBUG
+
+#ifdef DEBUG
 	std::cout << "\nPOWER\n";
 #endif // DEBUG
 
@@ -120,14 +132,20 @@ auto Data_logger::write_data_to_file() -> void const
 	write_power_to_file(apparent_power);
 	write_power_to_file(reactive_power);
 
-	//
+	
 #ifdef DEBUG
 	std::cout << "\nDEMAND POWER\n";
-		#endif // DEBUG
+#endif // DEBUG
 
 	write_demand_power_to_file(real_power);
 	write_demand_power_to_file(apparent_power);
 	write_demand_power_to_file(reactive_power);
+
+#ifdef DEBUG
+	std::cout << "\nCURRENT\n";
+#endif // DEBUG
+
+	write_current_to_file();
 }
 
 auto Data_logger::regs_init() -> void
@@ -314,8 +332,15 @@ auto Data_logger::read_power_from_device(Power& power) -> int
 			return -1;
 		}
 		memcpy_s(power.demand.data[power.demand.float_regs.peak], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		
+		// --------FLOAT---------
+
 	}
 	
+#ifdef DEBUG
+	std::cout << "Power reading completed!\n";
+#endif // DEBUG
+
 	return 0;
 }
 
@@ -381,11 +406,78 @@ auto Data_logger::read_current_from_device() -> int
 		current.A_max[0] = buf[0];
 		current.B_max[0] = buf[1];
 		current.C_max[0] = buf[2];
+
+		// ---------INT----------
 	}
 	else
 	{
+		// --------FLOAT---------
+		// phase reading
+		if (-1 == modbus_read_registers(ctx, CURRENT_A_FLOAT, 8, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_A_FLOAT)
+			return -1;
+		}
+		memcpy_s(current.A, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(current.B, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(current.C, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+		memcpy_s(current.N, sizeof(uint16_t) * 2, buf + 6, sizeof(uint16_t) * 2);
 
+		if (-1 == modbus_read_registers(ctx, CURRENT_3P_AVERAGE_FLOAT, 2, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_3P_AVERAGE_FLOAT)
+			return -1;
+		}
+		memcpy_s(current.phase_3, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+
+		// demand per phase
+		if (-1 == modbus_read_registers(ctx, CURRENT_A_DEMAND_PRESENT_FLOAT, 6, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_A_DEMAND_PRESENT_FLOAT)
+			return -1;
+		}
+		memcpy_s(current.A_demand, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(current.B_demand, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(current.C_demand, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+	
+		// demand peak per phase
+		if (-1 == modbus_read_registers(ctx, CURRENT_A_DEMAND_PEAK_FLOAT, 6, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_A_DEMAND_PEAK_FLOAT)
+				return -1;
+		}
+		memcpy_s(current.A_demand_peak, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(current.B_demand_peak, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(current.C_demand_peak, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+
+
+		// max min
+		if (-1 == modbus_read_registers(ctx, CURRENT_A_MIN_FLOAT, 6, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_A_MIN_FLOAT)
+			return -1;
+		}
+		memcpy_s(current.A_min, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(current.B_min, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(current.C_min, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+
+		if (-1 == modbus_read_registers(ctx, CURRENT_A_MAX_FLOAT, 6, buf))
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", CURRENT_A_MAX_FLOAT)
+			return -1;
+		}
+		memcpy_s(current.A_max, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(current.B_max, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
+		memcpy_s(current.C_max, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
+		
+		// --------FLOAT---------
 	}
+
+#ifdef DEBUG
+	std::cout << "Current reading completed!\n";
+#endif // DEBUG
+
+	return 0;
 }
 
 auto Data_logger::print_setup() -> void const
@@ -416,6 +508,8 @@ auto Data_logger::write_power_to_file(Power& power) -> void const
 	float min = 0, max = 0, total = 0;
 	int pow = setup.scale_w[0];
 	int scale = fast_pow(10, pow);
+
+	
 	if (!is_float)
 	{
 		A = (float) real_power.data[power.int_regs.A][0] / scale;
@@ -437,7 +531,7 @@ auto Data_logger::write_power_to_file(Power& power) -> void const
 #ifdef DEBUG
 	std::cout << power.name << ", " << power.metric << '\n';
 	std::cout << "A\tB\tC\n";
-	std::cout << A << "\t" << B << "\t" << C << '\n';
+	std::cout << A << '\t' << B << '\t' << C << '\n';
 	std::cout << "Total " << total << ' ' << power.metric << '\n';
 	std::cout << "Min = " << min << ' ' << power.metric << '\n';
 	std::cout << "Max = " << max << ' ' << power.metric << "\n\n";
@@ -472,7 +566,74 @@ auto Data_logger::write_current_to_file() -> void const
 	float A_demand_peak = 0, C_demand_peak = 0, B_demand_peak = 0;
 	float A_max = 0, A_min = 0, B_max = 0, B_min = 0, C_max = 0, C_min = 0;
 
+	int pow = setup.scale_i[0];
+	int scale = fast_pow(10, pow);
+	if (!is_float)
+	{
+		phase_3 = (float)current.phase_3[0] / scale;
+
+		A = (float) current.A[0] / scale;
+		B = (float) current.B[0] / scale;
+		C = (float) current.C[0] / scale;
+		N = (float) current.N[0] / scale;
+
+		A_demand = (float) current.A_demand[0] / scale;
+		B_demand = (float) current.B_demand[0] / scale;
+		C_demand = (float) current.C_demand[0] / scale;
+
+		A_demand_peak = (float) current.A_demand_peak[0] / scale;
+		B_demand_peak = (float) current.B_demand_peak[0] / scale;
+		C_demand_peak = (float) current.C_demand_peak[0] / scale;
+
+		A_max = (float) current.A_max[0] / scale;
+		A_min = (float) current.A_min[0] / scale;
+		B_max = (float) current.B_max[0] / scale;
+		B_min = (float) current.B_min[0] / scale;
+		C_max = (float) current.C_max[0] / scale;
+		C_min = (float) current.C_min[0] / scale;
+	}
+	else
+	{
+		A = modbus_get_float_abcd((uint16_t*) current.A);
+		B = modbus_get_float_abcd((uint16_t*) current.B);
+		C = modbus_get_float_abcd((uint16_t*) current.C);
+		N = modbus_get_float_abcd((uint16_t*) current.N);
+
+		A_demand = modbus_get_float_abcd((uint16_t*) current.A_demand);
+		B_demand = modbus_get_float_abcd((uint16_t*) current.B_demand);
+		C_demand = modbus_get_float_abcd((uint16_t*) current.C_demand);
+
+		A_demand_peak = modbus_get_float_abcd((uint16_t*) current.A_demand_peak);
+		B_demand_peak = modbus_get_float_abcd((uint16_t*) current.B_demand_peak);
+		C_demand_peak = modbus_get_float_abcd((uint16_t*) current.C_demand_peak);
+
+		A_max = modbus_get_float_abcd((uint16_t*) current.A_max);
+		A_min = modbus_get_float_abcd((uint16_t*) current.A_min);
+		B_max = modbus_get_float_abcd((uint16_t*) current.B_max);
+		B_min = modbus_get_float_abcd((uint16_t*) current.B_min);
+		C_max = modbus_get_float_abcd((uint16_t*) current.C_max);
+		C_min = modbus_get_float_abcd((uint16_t*) current.C_min);
+	}
+#ifdef DEBUG
+	std::cout << "I = " << phase_3 << '\n';
+	std::cout << "Present\n";
+	std::cout << "\tA\tB\tC\tN\n";
+	std::cout << '\t' << A << '\t' << B << '\t' << C << '\t' << N << "\n\n";
+	std::cout << "MAX\t" << A_max << '\t' << B_max << '\t' << C_max << '\n';
+	std::cout << "MIN\t" << A_min << '\t' << B_min << '\t' << C_min << "\n\n";
+	std::cout << "Demand\n";
+	std::cout << "A\tB\tC\n";
+	std::cout << A_demand << '\t' << B_demand << '\t' << C_demand << "\n\n";
+	std::cout << "Peak\n";
+	std::cout << "A\tB\tC\n";
+	std::cout << A_demand_peak << '\t' << B_demand_peak << '\t' << C_demand_peak << "\n\n";
+#endif // DEBUG
+
+	
+
 }
+
+
 
 auto Data_logger::fast_pow(const int& n, const int& m) -> int
 {

@@ -187,31 +187,31 @@
 
 // Displayed on the AMPS PER PHASE display
 
-#define CURRENT_3P_AVERAGE_INT 4012 - 1                    // Amp
+#define CURRENT_3P_AVERAGE_INT 4012 - 1                    // Amp / scale
 
 
-#define CURRENT_A_INT 4020 - 1                             // Amp
-#define CURRENT_B_INT 4021 - 1                             // Amp
-#define CURRENT_C_INT 4022 - 1                             // Amp
-#define CURRENT_N_INT 4023 - 1                             // Amp
+#define CURRENT_A_INT 4020 - 1                             // Amp / scale
+#define CURRENT_B_INT 4021 - 1                             // Amp / scale
+#define CURRENT_C_INT 4022 - 1                             // Amp / scale
+#define CURRENT_N_INT 4023 - 1                             // Amp / scale
 
-#define CURRENT_A_DEMAND_PRESENT_INT 4024 - 1              // Amp
-#define CURRENT_B_DEMAND_PRESENT_INT 4025 - 1              // Amp
-#define CURRENT_C_DEMAND_PRESENT_INT 4026 - 1              // Amp
-
-
-#define CURRENT_A_DEMAND_PEAK_INT 4027 - 1                 // Amp
-#define CURRENT_B_DEMAND_PEAK_INT 4028 - 1                 // Amp
-#define CURRENT_C_DEMAND_PEAK_INT 4029 - 1                 // Amp
+#define CURRENT_A_DEMAND_PRESENT_INT 4024 - 1              // Amp / scale
+#define CURRENT_B_DEMAND_PRESENT_INT 4025 - 1              // Amp / scale
+#define CURRENT_C_DEMAND_PRESENT_INT 4026 - 1              // Amp / scale
 
 
-#define CURRENT_A_MIN_INT 4060 - 1                         // Amp
-#define CURRENT_B_MIN_INT 4061 - 1                         // Amp
-#define CURRENT_C_MIN_INT 4062 - 1                         // Amp
+#define CURRENT_A_DEMAND_PEAK_INT 4027 - 1                 // Amp / scale
+#define CURRENT_B_DEMAND_PEAK_INT 4028 - 1                 // Amp / scale
+#define CURRENT_C_DEMAND_PEAK_INT 4029 - 1                 // Amp / scale
+
+
+#define CURRENT_A_MIN_INT 4060 - 1                         // Amp / scale
+#define CURRENT_B_MIN_INT 4061 - 1                         // Amp / scale
+#define CURRENT_C_MIN_INT 4062 - 1                         // Amp / scale
                                                            
-#define CURRENT_A_MAX_INT 4085 - 1                         // Amp
-#define CURRENT_B_MAX_INT 4086 - 1                         // Amp
-#define CURRENT_C_MAX_INT 4087 - 1                         // Amp
+#define CURRENT_A_MAX_INT 4085 - 1                         // Amp / scale
+#define CURRENT_B_MAX_INT 4086 - 1                         // Amp / scale
+#define CURRENT_C_MAX_INT 4087 - 1                         // Amp / scale
 
 //-----------------CURRENT-----------------\\
 
