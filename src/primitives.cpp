@@ -1,5 +1,6 @@
 #include "primitives.h"
 
+#include <format>
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -399,6 +400,21 @@ Text::Text(const char* text, glm::vec2 position, GLfloat size, GLfloat rotation,
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    text_width_px  = 0;
+    text_height_px = 0;
+    for (const auto& c : this->text)
+    {
+        auto ch = opengl.get_char(c);
+        text_width_px  += (ch->advance >> 6) * size;
+        GLfloat tmp_height = ch->bearing.y * size;
+        if (tmp_height > text_height_px)
+        {
+            text_height_px = tmp_height;
+        }
+    }
+    text_width_ndc  = (2 * text_width_px) / opengl.get_window_width();
+    text_height_ndc = (2 * text_height_px) / opengl.get_window_height();
 }
 
 Text::Text(const char* text, GLfloat x, GLfloat y, GLfloat size, GLfloat rotation, GLfloat R, GLfloat G, GLfloat B)
@@ -415,17 +431,17 @@ auto Text::draw() -> void
     GLfloat window_width  = opengl.get_window_width();
     GLfloat window_height = opengl.get_window_height();
 
-    GLfloat x_ndc_to_screen = (position.x + 1.0f) / 2.0f * window_width;
-    GLfloat y_ndc_to_screen = (position.y + 1.0f) / 2.0f * window_height;
+    GLfloat x_ndc_to_px = (position.x + 1.0f) / 2.0f * window_width;
+    GLfloat y_ndc_to_px = (position.y + 1.0f) / 2.0f * window_height;
 
     shader->use();
     shader->set_vec3("text_color", color);
 
     // I fucking hate these calculations. I hate them with all my soul and heart.
     glm::mat4 projection = glm::ortho(0.0f, window_width, 0.0f, window_height);
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x_ndc_to_screen, y_ndc_to_screen, 0.0f));
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x_ndc_to_px, y_ndc_to_px, 0.0f));
     model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::translate(model, glm::vec3(-x_ndc_to_screen, -y_ndc_to_screen, 0.0f));
+    model = glm::translate(model, glm::vec3(-x_ndc_to_px, -y_ndc_to_px, 0.0f));
 
     shader->set_mat4("projection", projection);
     shader->set_mat4("model", model);
@@ -433,8 +449,8 @@ auto Text::draw() -> void
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
 
-    GLfloat x = x_ndc_to_screen;
-    GLfloat y = y_ndc_to_screen;
+    GLfloat x = x_ndc_to_px;
+    GLfloat y = y_ndc_to_px;
 
     for (const auto& c : text)
     {
@@ -517,4 +533,24 @@ auto Text::set_shader(Shader* new_shader) -> void
 auto Text::set_shader(const char* shader_name) -> void
 {
     shader = opengl.get_shader(shader_name);
+}
+
+auto Text::get_width_px() -> GLfloat
+{
+    return text_width_px;
+}
+
+auto Text::get_height_px() -> GLfloat
+{
+    return text_height_px;
+}
+
+auto Text::get_width_ndc() -> GLfloat
+{
+    return text_width_ndc;
+}
+
+auto Text::get_height_ndc() -> GLfloat
+{
+    return text_height_ndc;
 }

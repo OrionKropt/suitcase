@@ -119,6 +119,10 @@ public:
     auto set_size(GLfloat new_size) -> void;
     auto set_shader(Shader* new_shader) -> void;
     auto set_shader(const char* shader_name) -> void;
+    auto get_width_px() -> GLfloat;
+    auto get_height_px() -> GLfloat;
+    auto get_width_ndc() -> GLfloat;
+    auto get_height_ndc() -> GLfloat;
 
 private:
     Shader*     shader;
@@ -129,4 +133,8 @@ private:
     glm::vec3   color;
     GLfloat     size;
     GLfloat     rotation;           // Degrees
+    GLfloat     text_width_px;      // px
+    GLfloat     text_height_px;     // px
+    GLfloat     text_width_ndc;     // NDC
+    GLfloat     text_height_ndc;    // NDC
 };
