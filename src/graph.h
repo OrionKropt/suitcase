@@ -1,31 +1,49 @@
 #pragma once
 
+#include <chrono>
 #include <string>
 #include <vector>
+#include <variant>
 #include <glm/glm.hpp>
 #include "primitives.h"
 
 class Graph
 {
 public:
-    Graph(const char* abscissa, const char* ordinate, GLint hor_delims, GLint ver_delims,
-          GLint hor_center = 0, GLint ver_center = 0, glm::vec2 position = glm::vec2(0.0f, 0.0f),
-          GLfloat hor_step = 0.05f, GLfloat ver_step = 0.05f);
+    using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
+    using AxisValue = std::variant<GLfloat, GLint64, TimePoint>;
+
+    Graph(const char* alternative, const char* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
+          GLfloat hor_value_step, GLfloat ver_value_step, GLint hor_delims, GLint ver_delims,
+          GLint hor_center = 0, GLint ver_center = 0, GLint hor_value_skip = 0,
+          GLint ver_value_skip = 0, GLfloat hor_grid_step = 0.05f, GLfloat ver_grid_step = 0.05f,
+          glm::vec2 position = glm::vec2(0.0f, 0.0f));
     ~Graph();
 
     auto draw() -> void;
-    auto add_point(GLfloat x, GLfloat y) -> void;
+    auto add_point(AxisValue x, AxisValue y) -> void;
+    auto set_axis_color(glm::vec3 new_color) -> void;
+    auto set_axis_color(GLfloat R, GLfloat G, GLfloat B) -> void;
+    auto set_grid_color(glm::vec3 new_color) -> void;
+    auto set_grid_color(GLfloat R, GLfloat G, GLfloat B) -> void;
 
 private:
+    auto initialize_axis_texts(std::vector<AxisValue>& values, AxisValue& zero_value, GLint delims, GLint center, GLfloat value_step) -> void;
+    auto get_raw_text(AxisValue variant) -> std::string;
+
     std::string abscissa;
     std::string ordinate;
+//    GLfloat     hor_zero_value;
+//    GLfloat     ver_zero_value;
+    GLfloat     value_step;
+    GLfloat     ver_value_step;
     GLint       hor_delims;
     GLint       ver_delims;
-    GLfloat     hor_step;           // NDC
-    GLfloat     ver_step;           // NDC
+    GLfloat     hor_grid_step;          // NDC
+    GLfloat     ver_grid_step;          // NDC
     GLint       hor_center;
-    GLint       ver_center;
-    glm::vec2   position;           // NDC
+    GLint       center;
+    glm::vec2   position;               // NDC
 
     GLfloat     left_border;
     GLfloat     right_border;
@@ -35,6 +53,13 @@ private:
     glm::vec3   axis_color;
     GLfloat     bg_lines_width;
     GLfloat     main_lines_width;
+    GLfloat     hor_min;
+    GLfloat     hor_max;
+    GLfloat     ver_min;
+    GLfloat     ver_max;
+
+    std::vector<AxisValue> hor_values;
+    std::vector<AxisValue> ver_values;
 
     std::vector<Line*>      bg_lines_hor;
     std::vector<Line*>      bg_lines_ver;
@@ -42,4 +67,6 @@ private:
     std::vector<Triangle*>  arrows;
     std::vector<Line*>      segments;
     std::vector<Point*>     points;
+    std::vector<Text*>      hor_texts;
+    std::vector<Text*>      ver_texts;
 };
