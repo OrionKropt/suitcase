@@ -36,6 +36,7 @@ private:
     std::unordered_map<char, Character>         characters;
     std::unordered_map<std::string, Shader*>    shaders;
     GLFWwindow*                                 window;
+    GLint                                       font_height;          // px
 
     OpenGL();
     ~OpenGL();
