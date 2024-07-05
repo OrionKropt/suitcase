@@ -52,6 +52,7 @@ public:
 
     auto draw() -> void override;
     auto move(GLfloat dx, GLfloat dy) -> void;
+    auto get_position() -> glm::vec2;
     auto set_position(glm::vec2 new_position) -> void;
     auto set_position(GLfloat new_x, GLfloat new_y) -> void;
     auto set_color(glm::vec3 new_color) -> void;
@@ -74,12 +75,14 @@ private:
 class Line : public Primitive
 {
 public:
-    Line(glm::vec2 start, glm::vec2 end, GLfloat width = 0.05f, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
+    Line(glm::vec2 start, glm::vec2 end, GLfloat width = 0.015f, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
     Line(GLfloat start_x, GLfloat start_y, GLfloat end_x, GLfloat end_y, GLfloat width = 0.05f, GLfloat R = 1.0f, GLfloat G = 0.0f, GLfloat B = 0.0f);
     ~Line() override;
 
     auto draw() -> void override;
     auto move(GLfloat dx, GLfloat dy) -> void;
+    auto get_start_position() -> glm::vec2;
+    auto get_end_position() -> glm::vec2;
     auto set_position(glm::vec2 new_start, glm::vec2 new_end) -> void;
     auto set_position(GLfloat new_start_x, GLfloat new_start_y, GLfloat new_end_x, GLfloat new_end_y) -> void;
     auto set_start(glm::vec2 new_start) -> void;

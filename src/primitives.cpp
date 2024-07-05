@@ -116,7 +116,6 @@ auto Triangle::set_shader(const char* shader_name) -> void
     shader = opengl.get_shader(shader_name);
 }
 
-
 Point::Point(glm::vec2 position, GLfloat width, glm::vec3 color)
 {
     this->position = position;
@@ -161,6 +160,7 @@ Point::~Point()
 {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
 }
 
 auto Point::draw() -> void
@@ -175,6 +175,11 @@ auto Point::draw() -> void
 auto Point::move(GLfloat dx, GLfloat dy) -> void
 {
     set_position(position.x + dx, position.y + dy);
+}
+
+auto Point::get_position() -> glm::vec2
+{
+    return position;
 }
 
 auto Point::set_position(glm::vec2 new_position) -> void
@@ -280,6 +285,16 @@ auto Line::draw() -> void
 auto Line::move(GLfloat dx, GLfloat dy) -> void
 {
     set_position(start.x + dx, start.y + dy, end.x + dx, end.y + dy);
+}
+
+auto Line::get_start_position() -> glm::vec2
+{
+    return start;
+}
+
+auto Line::get_end_position() -> glm::vec2
+{
+    return end;
 }
 
 auto Line::set_position(glm::vec2 new_start, glm::vec2 new_end) -> void
@@ -508,6 +523,22 @@ auto Text::set_position(GLfloat new_x, GLfloat new_y) -> void
 auto Text::set_text(const char* text) -> void
 {
     this->text = text;
+
+    // Recalculate size in pixels & NDC
+    text_width_px  = 0;
+    text_height_px = 0;
+    for (const auto& c : this->text)
+    {
+        auto ch = opengl.get_char(c);
+        text_width_px  += (ch->advance >> 6) * size;
+        GLfloat tmp_height = ch->bearing.y * size;
+        if (tmp_height > text_height_px)
+        {
+            text_height_px = tmp_height;
+        }
+    }
+    text_width_ndc  = (2 * text_width_px) / opengl.get_window_width();
+    text_height_ndc = (2 * text_height_px) / opengl.get_window_height();
 }
 
 auto Text::set_color(glm::vec3 new_color) -> void
