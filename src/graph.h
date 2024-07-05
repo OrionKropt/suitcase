@@ -14,7 +14,7 @@ public:
     using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
     using AxisValue = std::variant<GLfloat, GLint64, TimePoint>;
 
-    // TODO: Add functional for *_value_skip, add functional for position
+    // TODO: Add functional for *_value_skip
     Graph(const char* alternative, const char* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
           GLfloat hor_value_step, GLfloat ver_value_step, GLint hor_delims, GLint ver_delims,
           GLint hor_center = 0, GLint ver_center = 0, GLint hor_value_skip = 0,
@@ -25,6 +25,14 @@ public:
     auto draw() -> void;
     auto add_point(AxisValue x, AxisValue y) -> void;
     auto add_segment(glm::vec2 start, glm::vec2 end) -> void;
+    auto move(glm::vec2 delta) -> void;
+    auto move(GLfloat dx, GLfloat dy) -> void;
+    auto set_position(glm::vec2 new_position) -> void;
+    auto set_position(GLfloat new_x, GLfloat new_y) -> void;
+    auto set_enabled(bool state) -> void;
+    auto enable() -> void;
+    auto disable() -> void;
+    auto is_enabled() const -> bool;
     auto set_axis_color(glm::vec3 new_color) -> void;
     auto set_axis_color(GLfloat R, GLfloat G, GLfloat B) -> void;
     auto set_grid_color(glm::vec3 new_color) -> void;

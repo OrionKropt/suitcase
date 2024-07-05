@@ -15,6 +15,8 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
              GLint hor_center, GLint ver_center, GLint hor_value_skip, GLint ver_value_skip,
              GLfloat hor_grid_step, GLfloat ver_grid_step, glm::vec2 position)
 {
+    this->enabled = false;
+
     this->abscissa       = abscissa;
     this->ordinate       = ordinate;
     this->hor_zero_value = hor_zero_value;
@@ -42,22 +44,30 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
     up_border    = ver_grid_step * (ver_delims / 2) - ver_offset;
     down_border  = -ver_grid_step * (ver_delims / 2) + ver_offset;
 
+    // Shift with given position
+    left_border  += position.x;
+    right_border += position.x;
+    up_border    += position.y;
+    down_border  += position.y;
+
     // * Background lines (grid)
     bg_lines_hor = std::vector<std::shared_ptr<Line>>(hor_delims);
     GLfloat tmp_left = left_border;
     for (int i = 0; i < hor_delims; ++i) {
-        bg_lines_hor[i] = std::make_shared<Line>(glm::vec2(tmp_left, down_border),
-                                                 glm::vec2(tmp_left, up_border),
-                                                 bg_lines_width, bg_color);
+        auto hor_bg_line = std::make_shared<Line>(glm::vec2(tmp_left, down_border),
+                                                  glm::vec2(tmp_left, up_border),
+                                                  bg_lines_width, bg_color);
+        bg_lines_hor[i] = hor_bg_line;
         tmp_left += hor_grid_step;
     }
 
     bg_lines_ver = std::vector<std::shared_ptr<Line>>(ver_delims);
     GLfloat tmp_down = down_border;
     for (int i = 0; i < ver_delims; ++i) {
-        bg_lines_ver[i] = std::make_shared<Line>(glm::vec2(left_border, tmp_down),
-                                                 glm::vec2(right_border, tmp_down),
-                                                 bg_lines_width, bg_color);
+        auto ver_bg_line = std::make_shared<Line>(glm::vec2(left_border, tmp_down),
+                                                  glm::vec2(right_border, tmp_down),
+                                                  bg_lines_width, bg_color);
+        bg_lines_ver[i] = ver_bg_line;
         tmp_down += ver_grid_step;
     }
 
@@ -78,28 +88,32 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
     GLfloat hor_axis_offset = hor_center * ver_grid_step - ver_offset;
     GLfloat ver_axis_offset = ver_center * hor_grid_step - hor_offset;
 
+    // Shift with given position
+    hor_axis_offset += position.y;
+    ver_axis_offset += position.x;
+
     main_lines = std::vector<std::shared_ptr<Line>>(2);
-    // Hor
-    main_lines[0] = std::make_shared<Line>(glm::vec2(left_border, hor_axis_offset),
-                                           glm::vec2(right_border, hor_axis_offset),
-                                           main_lines_width, axis_color);
-    // Ver
-    main_lines[1] = std::make_shared<Line>(glm::vec2(ver_axis_offset, down_border),
-                                           glm::vec2(ver_axis_offset, up_border),
-                                           main_lines_width, axis_color);
+    auto hor_main_line = std::make_shared<Line>(glm::vec2(left_border, hor_axis_offset),
+                                                glm::vec2(right_border, hor_axis_offset),
+                                                main_lines_width, axis_color);
+    main_lines[0] = hor_main_line;
+    auto ver_main_line = std::make_shared<Line>(glm::vec2(ver_axis_offset, down_border),
+                                                glm::vec2(ver_axis_offset, up_border),
+                                                main_lines_width, axis_color);
+    main_lines[1] = ver_main_line;
 
     // * Arrows
     arrows = std::vector<std::shared_ptr<Triangle>>(2);
-    // Hor
-    arrows[0] = std::make_shared<Triangle>(glm::vec2(right_border + main_lines_width * 2, hor_axis_offset),
-                                           glm::vec2(right_border - main_lines_width * 2, hor_axis_offset - main_lines_width * 2),
-                                           glm::vec2(right_border - main_lines_width * 2, hor_axis_offset + main_lines_width * 2),
-                                           axis_color);
-    // Ver
-    arrows[1] = std::make_shared<Triangle>(glm::vec2(ver_axis_offset, up_border + main_lines_width * 2),
-                                           glm::vec2(ver_axis_offset + main_lines_width * 2, up_border - main_lines_width * 2),
-                                           glm::vec2(ver_axis_offset - main_lines_width * 2, up_border - main_lines_width * 2),
-                                           axis_color);
+    auto hor_arrow = std::make_shared<Triangle>(glm::vec2(right_border + main_lines_width * 2, hor_axis_offset),
+                                                glm::vec2(right_border - main_lines_width * 2, hor_axis_offset - main_lines_width * 2),
+                                                glm::vec2(right_border - main_lines_width * 2, hor_axis_offset + main_lines_width * 2),
+                                                axis_color);
+    arrows[0] = hor_arrow;
+    auto ver_arrow = std::make_shared<Triangle>(glm::vec2(ver_axis_offset, up_border + main_lines_width * 2),
+                                                glm::vec2(ver_axis_offset + main_lines_width * 2, up_border - main_lines_width * 2),
+                                                glm::vec2(ver_axis_offset - main_lines_width * 2, up_border - main_lines_width * 2),
+                                                axis_color);
+    arrows[1] = ver_arrow;
 
     // * Text
     hor_values = std::vector<AxisValue>(hor_delims);
@@ -107,7 +121,6 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
 
     // Abscissa values init
     initialize_axis_texts(hor_values, hor_zero_value, hor_delims, ver_center, hor_value_step);
-
     // Ordinate values init
     initialize_axis_texts(ver_values, ver_zero_value, ver_delims, hor_center, ver_value_step);
 
@@ -149,96 +162,49 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
                                                       hor_axis_offset),
                                                       0.65f, 0.0f);
     hor_label->move(0.0f, -hor_label->get_height_ndc() / 2);
+    axis_labels[0] = hor_label;
     auto ver_label = std::make_shared<Text>(ordinate,
                                             glm::vec2(ver_axis_offset,
                                                       up_border + ver_grid_step / 1.5f),
                                                       0.65f, 0.0f);
     ver_label->move(-ver_label->get_width_ndc() / 2, 0.0f);
-    axis_labels[0] = hor_label;
     axis_labels[1] = ver_label;
 }
 
-Graph::~Graph()
-{
-    /*
-    for (auto& bg_line : bg_lines_hor)
-    {
-        delete bg_line;
-    }
-    for (auto& bg_line : bg_lines_ver)
-    {
-        delete bg_line;
-    }
-    for (auto& main_line : main_lines)
-    {
-        delete main_line;
-    }
-    for (auto& arrow : arrows)
-    {
-        delete arrow;
-    }
-    for (auto& segment : segments)
-    {
-        delete segment;
-    }
-    for (auto& point : points)
-    {
-        delete point;
-    }
-    for (auto& hor_text : hor_texts)
-    {
-        delete hor_text;
-    }
-    for (auto& ver_text : ver_texts)
-    {
-        delete ver_text;
-    }
-    for (auto& label : axis_labels)
-    {
-        delete label;
-    }
-    */
-}
+Graph::~Graph() = default;
 
 auto Graph::draw() -> void
 {
     // * Render order to avoid incorrect overlaying:
     // * bg_lines -> main_lines -> arrows -> segments -> points -> text -> labels
-    for (const auto& bg_line : bg_lines_hor)
-    {
-        bg_line->draw();
-    }
-    for (const auto& bg_line : bg_lines_ver)
-    {
-        bg_line->draw();
-    }
-    for (const auto& main_line : main_lines)
-    {
-        main_line->draw();
-    }
-    for (const auto& arrow : arrows)
-    {
-        arrow->draw();
-    }
-    for (const auto& segment : segments)
-    {
-        segment->draw();
-    }
-    for (const auto& point : points)
-    {
-        point->draw();
-    }
-    for (const auto& hor_text : hor_texts)
-    {
-        hor_text->draw();
-    }
-    for (const auto& ver_text : ver_texts)
-    {
-        ver_text->draw();
-    }
-    for (const auto& label : axis_labels)
-    {
-        label->draw();
+    if (enabled) {
+        for (const auto& bg_line: bg_lines_hor) {
+            bg_line->draw();
+        }
+        for (const auto& bg_line: bg_lines_ver) {
+            bg_line->draw();
+        }
+        for (const auto& main_line: main_lines) {
+            main_line->draw();
+        }
+        for (const auto& arrow: arrows) {
+            arrow->draw();
+        }
+        for (const auto& segment: segments) {
+            segment->draw();
+        }
+        for (const auto& point: points) {
+            point->draw();
+        }
+        for (const auto& hor_text: hor_texts) {
+            hor_text->draw();
+        }
+        for (const auto& ver_text: ver_texts) {
+            ver_text->draw();
+        }
+        for (const auto& label: axis_labels) {
+            label->draw();
+        }
     }
 }
 
@@ -337,6 +303,83 @@ auto Graph::add_segment(glm::vec2 start, glm::vec2 end) -> void
     auto segment = std::make_shared<Line>(glm::vec2(start.x, start.y), glm::vec2(end.x, end.y));
     segments.push_back(segment);
 }
+
+auto Graph::move(glm::vec2 delta) -> void
+{
+    move(delta.x, delta.y);
+}
+
+auto Graph::move(GLfloat dx, GLfloat dy) -> void
+{
+    left_border  += dx;
+    right_border += dx;
+    up_border    += dy;
+    down_border  += dy;
+
+    for (const auto& bg_line : bg_lines_hor)
+    {
+        bg_line->move(dx, dy);
+    }
+    for (const auto& bg_line : bg_lines_ver)
+    {
+        bg_line->move(dx, dy);
+    }
+    for (const auto& main_line : main_lines)
+    {
+        main_line->move(dx, dy);
+    }
+    for (const auto& arrow: arrows) {
+        arrow->move(dx, dy);
+    }
+    for (const auto& segment: segments) {
+        segment->move(dx, dy);
+    }
+    for (const auto& point: points) {
+        point->move(dx, dy);
+    }
+    for (const auto& hor_text: hor_texts) {
+        hor_text->move(dx, dy);
+    }
+    for (const auto& ver_text: ver_texts) {
+        ver_text->move(dx, dy);
+    }
+    for (const auto& label: axis_labels) {
+        label->move(dx, dy);
+    }
+}
+
+auto Graph::set_position(glm::vec2 new_position) -> void
+{
+    glm::vec2 delta = new_position - position;
+    move(delta);
+}
+
+auto Graph::set_position(GLfloat new_x, GLfloat new_y) -> void
+{
+    set_position(glm::vec2(new_x, new_y));
+}
+
+
+auto Graph::set_enabled(bool state) -> void
+{
+    enabled = state;
+}
+
+auto Graph::enable() -> void
+{
+    enabled = true;
+}
+
+auto Graph::disable() -> void
+{
+    enabled = false;
+}
+
+auto Graph::is_enabled() const -> bool
+{
+    return enabled;
+}
+
 
 auto Graph::set_axis_color(glm::vec3 new_color) -> void
 {
@@ -492,9 +535,6 @@ auto Graph::create_next_value(AxisValue& current, GLfloat step) -> AxisValue
                 }
                 else if constexpr (std::is_same_v<Type, TimePoint>)
                 {
-                    //GLint64 value = std::chrono::duration_cast<std::chrono::seconds>(alternative.time_since_epoch()).count();
-                    //value += step;
-                    //result = std::chrono::system_clock::from_time_t(value);
                     result = alternative + std::chrono::seconds(static_cast<GLint64>(step));
                 }
                 return result;
@@ -510,5 +550,6 @@ auto Graph::update_labels() -> void {
                                              down_border - ver_grid_step / 4));
         hor_texts[i]->move(-(hor_texts[i]->get_width_ndc() * cos(hor_rotation_rad) - hor_texts[i]->get_height_ndc() * sin(hor_rotation_rad)),
                            -(hor_texts[i]->get_width_ndc() * sin(hor_rotation_rad) + hor_texts[i]->get_height_ndc() * cos(hor_rotation_rad)));
+        //hor_texts[i]->move(position);
     }
 }
