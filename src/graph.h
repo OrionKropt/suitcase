@@ -22,6 +22,7 @@ public:
 
     auto draw() -> void;
     auto add_point(AxisValue x, AxisValue y) -> void;
+    auto add_segment(glm::vec2 start, glm::vec2 end) -> void;
     auto set_axis_color(glm::vec3 new_color) -> void;
     auto set_axis_color(GLfloat R, GLfloat G, GLfloat B) -> void;
     auto set_grid_color(glm::vec3 new_color) -> void;
@@ -30,12 +31,15 @@ public:
 private:
     auto initialize_axis_texts(std::vector<AxisValue>& values, AxisValue& zero_value, GLint delims, GLint center, GLfloat value_step) -> void;
     auto get_raw_text(AxisValue variant) -> std::string;
+    auto find_value(GLint axis, AxisValue axis_value) -> GLfloat;
+    auto create_next_value(AxisValue& current, GLfloat step) -> AxisValue;
+    auto update_labels() -> void;
 
     std::string abscissa;
     std::string ordinate;
-//    GLfloat     hor_zero_value;
-//    GLfloat     ver_zero_value;
-    GLfloat     value_step;
+    AxisValue   hor_zero_value;
+    AxisValue   ver_zero_value;
+    GLfloat     hor_value_step;
     GLfloat     ver_value_step;
     GLint       hor_delims;
     GLint       ver_delims;
@@ -57,6 +61,8 @@ private:
     GLfloat     hor_max;
     GLfloat     ver_min;
     GLfloat     ver_max;
+    GLfloat     hor_rotation_deg;
+    GLfloat     hor_rotation_rad;
 
     std::vector<AxisValue> hor_values;
     std::vector<AxisValue> ver_values;
@@ -69,4 +75,5 @@ private:
     std::vector<Point*>     points;
     std::vector<Text*>      hor_texts;
     std::vector<Text*>      ver_texts;
+    std::vector<Text*>      axis_labels;
 };
