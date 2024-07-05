@@ -62,9 +62,19 @@ auto Triangle::draw() -> void
     glBindVertexArray(0);
 }
 
+auto Triangle::move(glm::vec2 delta) -> void
+{
+    move(delta.x, delta.y);
+}
+
 auto Triangle::move(GLfloat dx, GLfloat dy) -> void
 {
     set_position(position.x + dx, position.y + dy);
+}
+
+auto Triangle::get_position() -> glm::vec2
+{
+    return position;
 }
 
 auto Triangle::set_position(glm::vec2 new_position) -> void
@@ -74,9 +84,11 @@ auto Triangle::set_position(glm::vec2 new_position) -> void
         return;
     }
 
-    v1 = (v1 - position) + new_position;
-    v2 = (v2 - position) + new_position;
-    v3 = (v3 - position) + new_position;
+    glm::vec2 delta = new_position - position;
+
+    v1 += delta;
+    v2 += delta;
+    v3 += delta;
 
     position = new_position;
 
@@ -115,6 +127,7 @@ auto Triangle::set_shader(const char* shader_name) -> void
 {
     shader = opengl.get_shader(shader_name);
 }
+
 
 Point::Point(glm::vec2 position, GLfloat width, glm::vec3 color)
 {
@@ -170,6 +183,11 @@ auto Point::draw() -> void
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+auto Point::move(glm::vec2 delta) -> void
+{
+    move(delta.x, delta.y);
 }
 
 auto Point::move(GLfloat dx, GLfloat dy) -> void
@@ -280,6 +298,11 @@ auto Line::draw() -> void
     glBindVertexArray(VAO);
     glDrawArrays(GL_LINES, 0, 2);
     glBindVertexArray(0);
+}
+
+auto Line::move(glm::vec2 delta) -> void
+{
+    move(delta.x, delta.y);
 }
 
 auto Line::move(GLfloat dx, GLfloat dy) -> void
@@ -500,9 +523,19 @@ auto Text::draw() -> void
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+auto Text::move(glm::vec2 delta) -> void
+{
+    move(delta.x, delta.y);
+}
+
 auto Text::move(GLfloat dx, GLfloat dy) -> void
 {
     set_position(position.x + dx, position.y + dy);
+}
+
+auto Text::get_position() -> glm::vec2
+{
+    return position;
 }
 
 auto Text::set_position(glm::vec2 new_position) -> void

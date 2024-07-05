@@ -23,7 +23,9 @@ public:
     ~Triangle() override;
 
     auto draw() -> void override;
+    auto move(glm::vec2 delta) -> void;
     auto move(GLfloat dx, GLfloat dy) -> void;
+    auto get_position() -> glm::vec2;
     auto set_position(glm::vec2 new_position) -> void;
     auto set_position(GLfloat new_x, GLfloat new_y) -> void;
     auto set_color(glm::vec3 new_color) -> void;
@@ -51,6 +53,7 @@ public:
     ~Point() override;
 
     auto draw() -> void override;
+    auto move(glm::vec2 delta) -> void;
     auto move(GLfloat dx, GLfloat dy) -> void;
     auto get_position() -> glm::vec2;
     auto set_position(glm::vec2 new_position) -> void;
@@ -80,6 +83,7 @@ public:
     ~Line() override;
 
     auto draw() -> void override;
+    auto move(glm::vec2 delta) -> void;
     auto move(GLfloat dx, GLfloat dy) -> void;
     auto get_start_position() -> glm::vec2;
     auto get_end_position() -> glm::vec2;
@@ -113,7 +117,9 @@ public:
     ~Text() override;
 
     auto draw() -> void override;
+    auto move(glm::vec2 delta) -> void;
     auto move(GLfloat dx, GLfloat dy) -> void;
+    auto get_position() -> glm::vec2;
     auto set_position(glm::vec2 new_position) -> void;
     auto set_position(GLfloat new_x, GLfloat new_y) -> void;
     auto set_text(const char* text) -> void;
