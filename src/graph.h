@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <memory>
 #include <string>
 #include <vector>
 #include <variant>
@@ -13,6 +14,7 @@ public:
     using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
     using AxisValue = std::variant<GLfloat, GLint64, TimePoint>;
 
+    // TODO: Add functional for *_value_skip, add functional for position
     Graph(const char* alternative, const char* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
           GLfloat hor_value_step, GLfloat ver_value_step, GLint hor_delims, GLint ver_delims,
           GLint hor_center = 0, GLint ver_center = 0, GLint hor_value_skip = 0,
@@ -34,6 +36,8 @@ private:
     auto find_value(GLint axis, AxisValue axis_value) -> GLfloat;
     auto create_next_value(AxisValue& current, GLfloat step) -> AxisValue;
     auto update_labels() -> void;
+
+    bool    enabled;    // TODO: Stopped here
 
     std::string abscissa;
     std::string ordinate;
@@ -67,13 +71,13 @@ private:
     std::vector<AxisValue> hor_values;
     std::vector<AxisValue> ver_values;
 
-    std::vector<Line*>      bg_lines_hor;
-    std::vector<Line*>      bg_lines_ver;
-    std::vector<Line*>      main_lines;
-    std::vector<Triangle*>  arrows;
-    std::vector<Line*>      segments;
-    std::vector<Point*>     points;
-    std::vector<Text*>      hor_texts;
-    std::vector<Text*>      ver_texts;
-    std::vector<Text*>      axis_labels;
+    std::vector<std::shared_ptr<Line>>      bg_lines_hor;
+    std::vector<std::shared_ptr<Line>>      bg_lines_ver;
+    std::vector<std::shared_ptr<Line>>      main_lines;
+    std::vector<std::shared_ptr<Triangle>>  arrows;
+    std::vector<std::shared_ptr<Line>>      segments;
+    std::vector<std::shared_ptr<Point>>     points;
+    std::vector<std::shared_ptr<Text>>      hor_texts;
+    std::vector<std::shared_ptr<Text>>      ver_texts;
+    std::vector<std::shared_ptr<Text>>      axis_labels;
 };

@@ -97,7 +97,7 @@ auto OpenGL::initialize() -> void
     // std::string alphabet = " !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~ÀÁÂÃÄÅ¨ÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜİŞßàáâãäå¸æçèéêëìíîïğñòóôõö÷øùúûüışÿ";
     for (unsigned char c = 0; c < 128; ++c) {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            PRINT_ERROR("Glyph load failed", false, "Glyph: '{}'", c);
+            PRINT_ERROR("Glyph load failed", false, "Glyph: '{}'\n", c);
             continue;
         }
 
@@ -141,14 +141,14 @@ auto OpenGL::get_window() -> GLFWwindow*
     return window;
 }
 
-auto OpenGL::create_shader(const char* name, const char* vertex_file, const char* fragment_file, const char* geometry_file) -> Shader*
+auto OpenGL::create_shader(const char* name, const char* vertex_file, const char* fragment_file, const char* geometry_file) -> std::shared_ptr<Shader>
 {
-    auto* shader = new Shader(vertex_file, fragment_file, geometry_file);
+    auto shader = std::make_shared<Shader>(vertex_file, fragment_file, geometry_file);
     shaders[name] = shader;
     return shader;
 }
 
-auto OpenGL::get_shader(const char* name) -> Shader*
+auto OpenGL::get_shader(const char* name) -> std::shared_ptr<Shader>
 {
     return shaders[name];
 }
@@ -225,7 +225,7 @@ Shader::Shader(const char* vertex_path, const char* fragment_path, const char* g
     }
     catch (std::ifstream::failure& exception)
     {
-        PRINT_ERROR("Shader file read failed", true, "Details: {}", exception.what());
+        PRINT_ERROR("Shader file read failed", true, "Details: {}\n", exception.what());
     }
 
     const GLchar* vertex_code = vertex_code_raw.c_str();
@@ -354,7 +354,7 @@ auto Shader::check_compile_errors(GLuint target, const std::string&& type) -> vo
         if (!success)
         {
             glGetShaderInfoLog(target, 1024, nullptr, log);
-            PRINT_ERROR("Shader compilation failed", true, "Shader: {} \nLog: {}", type, log);
+            PRINT_ERROR("Shader compilation failed", true, "Shader: {} \nLog: {}\n", type, log);
         }
     }
     else if (type == "PROGRAM")
@@ -363,11 +363,11 @@ auto Shader::check_compile_errors(GLuint target, const std::string&& type) -> vo
         if (!success)
         {
             glGetProgramInfoLog(target, 1024, nullptr, log);
-            PRINT_ERROR("Shader program linking failed", true, "Log: {}", log);
+            PRINT_ERROR("Shader program linking failed", true, "Log: {}\n", log);
         }
     }
     else
     {
-        PRINT_ERROR("Unknown type specified", false, "Type: {}", type);
+        PRINT_ERROR("Unknown type specified", false, "Type: {}\n", type);
     }
 }

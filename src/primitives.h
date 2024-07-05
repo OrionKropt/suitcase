@@ -28,18 +28,18 @@ public:
     auto set_position(GLfloat new_x, GLfloat new_y) -> void;
     auto set_color(glm::vec3 new_color) -> void;
     auto set_color(GLfloat R, GLfloat G, GLfloat B) -> void;
-    auto set_shader(Shader* new_shader) -> void;
+    auto set_shader(std::shared_ptr<Shader> new_shader) -> void;
     auto set_shader(const char* shader_name) -> void;
 
 private:
-    Shader*     shader;
-    GLuint      VAO;
-    GLuint      VBO;
-    glm::vec2   v1;                 // NDC
-    glm::vec2   v2;                 // NDC
-    glm::vec2   v3;                 // NDC
-    glm::vec2   position;           // NDC
-    glm::vec3   color;
+    std::shared_ptr<Shader> shader;
+    GLuint                  VAO;
+    GLuint                  VBO;
+    glm::vec2               v1;                 // NDC
+    glm::vec2               v2;                 // NDC
+    glm::vec2               v3;                 // NDC
+    glm::vec2               position;           // NDC
+    glm::vec3               color;
 };
 
 
@@ -58,17 +58,17 @@ public:
     auto set_color(glm::vec3 new_color) -> void;
     auto set_color(GLfloat R, GLfloat G, GLfloat B) -> void;
     auto set_width(GLfloat new_width) -> void;
-    auto set_shader(Shader* new_shader) -> void;
+    auto set_shader(std::shared_ptr<Shader> new_shader) -> void;
     auto set_shader(const char* shader_name) -> void;
 
 private:
-    Shader*     shader;
-    GLuint      VAO;
-    GLuint      VBO;
-    GLuint      EBO;
-    glm::vec2   position;           // NDC
-    glm::vec3   color;
-    GLfloat     width;
+    std::shared_ptr<Shader> shader;
+    GLuint                  VAO;
+    GLuint                  VBO;
+    GLuint                  EBO;
+    glm::vec2               position;           // NDC
+    glm::vec3               color;
+    GLfloat                 width;
 };
 
 
@@ -92,17 +92,17 @@ public:
     auto set_color(glm::vec3 new_color) -> void;
     auto set_color(GLfloat R, GLfloat G, GLfloat B) -> void;
     auto set_width(GLfloat new_width) -> void;
-    auto set_shader(Shader* new_shader) -> void;
+    auto set_shader(std::shared_ptr<Shader> new_shader) -> void;
     auto set_shader(const char* shader_name) -> void;
 
 private:
-    Shader*     shader;
-    GLuint      VAO;
-    GLuint      VBO;
-    glm::vec2   start;          // NDC
-    glm::vec2   end;            // NDC
-    glm::vec3   color;
-    GLfloat     width;          // NDC
+    std::shared_ptr<Shader> shader;
+    GLuint                  VAO;
+    GLuint                  VBO;
+    glm::vec2               start;          // NDC
+    glm::vec2               end;            // NDC
+    glm::vec3               color;
+    GLfloat                 width;          // NDC
 };
 
 class Text : public Primitive
@@ -120,7 +120,7 @@ public:
     auto set_color(glm::vec3 new_color) -> void;
     auto set_color(GLfloat R, GLfloat G, GLfloat B) -> void;
     auto set_size(GLfloat new_size) -> void;
-    auto set_shader(Shader* new_shader) -> void;
+    auto set_shader(std::shared_ptr<Shader> new_shader) -> void;
     auto set_shader(const char* shader_name) -> void;
     auto get_width_px() -> GLfloat;
     auto get_height_px() -> GLfloat;
@@ -128,16 +128,16 @@ public:
     auto get_height_ndc() -> GLfloat;
 
 private:
-    Shader*     shader;
-    std::string text;
-    GLuint      VAO;
-    GLuint      VBO;
-    glm::vec2   position;           // NDC
-    glm::vec3   color;
-    GLfloat     size;
-    GLfloat     rotation;           // Degrees
-    GLfloat     text_width_px;      // px
-    GLfloat     text_height_px;     // px
-    GLfloat     text_width_ndc;     // NDC
-    GLfloat     text_height_ndc;    // NDC
+    std::shared_ptr<Shader> shader;
+    std::string             text;
+    GLuint                  VAO;
+    GLuint                  VBO;
+    glm::vec2               position;           // NDC
+    glm::vec3               color;
+    GLfloat                 size;
+    GLfloat                 rotation;           // Degrees
+    GLfloat                 text_width_px;      // px
+    GLfloat                 text_height_px;     // px
+    GLfloat                 text_width_ndc;     // NDC
+    GLfloat                 text_height_ndc;    // NDC
 };

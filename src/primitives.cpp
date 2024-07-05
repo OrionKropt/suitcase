@@ -106,7 +106,7 @@ auto Triangle::set_color(GLfloat R, GLfloat G, GLfloat B) -> void
     set_color(glm::vec3(R, G, B));
 }
 
-auto Triangle::set_shader(Shader* new_shader) -> void
+auto Triangle::set_shader(std::shared_ptr<Shader> new_shader) -> void
 {
     shader = new_shader;
 }
@@ -223,7 +223,7 @@ auto Point::set_width(GLfloat new_width) -> void
     width = new_width;
 }
 
-auto Point::set_shader(Shader* new_shader) -> void
+auto Point::set_shader(std::shared_ptr<Shader> new_shader) -> void
 {
     shader = new_shader;
 }
@@ -385,7 +385,7 @@ auto Line::set_width(GLfloat new_width) -> void
     width = new_width;
 }
 
-auto Line::set_shader(Shader* new_shader) -> void
+auto Line::set_shader(std::shared_ptr<Shader> new_shader) -> void
 {
     shader = new_shader;
 }
@@ -556,7 +556,7 @@ auto Text::set_size(GLfloat new_size) -> void
     size = new_size;
 }
 
-auto Text::set_shader(Shader* new_shader) -> void
+auto Text::set_shader(std::shared_ptr<Shader> new_shader) -> void
 {
     shader = new_shader;
 }

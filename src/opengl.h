@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -9,7 +10,8 @@
 
 class Shader;
 
-class OpenGL {
+class OpenGL
+{
     struct Character;
 public:
     static auto get_instance() -> OpenGL&;
@@ -17,8 +19,8 @@ public:
     auto initialize() -> void;
 
     auto get_window() -> GLFWwindow*;
-    auto create_shader(const char* name, const char* vertex_file, const char* fragment_file, const char* geometry_file = nullptr) -> Shader*;
-    auto get_shader(const char* name) -> Shader*;
+    auto create_shader(const char* name, const char* vertex_file, const char* fragment_file, const char* geometry_file = nullptr) -> std::shared_ptr<Shader>;
+    auto get_shader(const char* name) -> std::shared_ptr<Shader>;
     auto get_char(char c) -> const Character*;
     auto get_key(int key_code) -> GLboolean;
     auto get_window_width() -> GLint;
@@ -33,17 +35,16 @@ private:
         GLuint      advance;
     };
 
-    std::unordered_map<char, Character>         characters;
-    std::unordered_map<std::string, Shader*>    shaders;
-    GLFWwindow*                                 window;
-    GLint                                       font_height;          // px
+    std::unordered_map<char, Character>                         characters;
+    std::unordered_map<std::string, std::shared_ptr<Shader>>    shaders;
+    GLFWwindow*                                                 window;
 
     OpenGL();
     ~OpenGL();
 
-    static GLint window_width;
-    static GLint window_height;
-    static std::vector<GLboolean> keys;
+    static GLint                    window_width;
+    static GLint                    window_height;
+    static std::vector<GLboolean>   keys;
 
     static auto key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void;
     static auto framebuffer_resize_callback(GLFWwindow* window, int width, int height) -> void;
@@ -72,6 +73,7 @@ public:
     auto set_mat4(const char* name, glm::mat4& value) -> void;
 
 private:
-    GLuint shader_program;
     auto check_compile_errors(GLuint target, const std::string&& type) -> void;
+
+    GLuint shader_program;
 };
