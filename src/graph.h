@@ -14,8 +14,8 @@ public:
     using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
     using AxisValue = std::variant<GLfloat, GLint64, TimePoint>;
 
-    // TODO: Add functional for *_value_skip
-    Graph(const char* alternative, const char* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
+    // TODO: Add functional for *_value_skip AND scaling on not 1:1 resolution
+    Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
           GLfloat hor_value_step, GLfloat ver_value_step, GLint hor_delims, GLint ver_delims,
           GLint hor_center = 0, GLint ver_center = 0, GLint hor_value_skip = 0,
           GLint ver_value_skip = 0, GLfloat hor_grid_step = 0.05f, GLfloat ver_grid_step = 0.05f,
@@ -45,30 +45,30 @@ private:
     auto create_next_value(AxisValue& current, GLfloat step) -> AxisValue;
     auto update_labels() -> void;
 
-    bool    enabled;    // TODO: Stopped here
+    bool        enabled;                // Should Graph be rendered
 
-    std::string abscissa;
+    std::string abscissa;               // Labels for axis'
     std::string ordinate;
-    AxisValue   hor_zero_value;
+    AxisValue   hor_zero_value;         // Values at (0, 0) point
     AxisValue   ver_zero_value;
-    GLfloat     hor_value_step;
+    GLfloat     hor_value_step;         // Steps between values: value[n] = value[n-1] + step
     GLfloat     ver_value_step;
-    GLint       hor_delims;
+    GLint       hor_delims;             // Amount of hor/ver lines in grid
     GLint       ver_delims;
     GLfloat     hor_grid_step;          // NDC
     GLfloat     ver_grid_step;          // NDC
     GLint       hor_center;
-    GLint       center;
+    GLint       ver_center;
     glm::vec2   position;               // NDC
 
     GLfloat     left_border;
     GLfloat     right_border;
     GLfloat     up_border;
     GLfloat     down_border;
-    glm::vec3   bg_color;
-    glm::vec3   axis_color;
-    GLfloat     bg_lines_width;
-    GLfloat     main_lines_width;
+    glm::vec3   bg_lines_color      = glm::vec3(0.5f, 0.5f, 0.5f);
+    glm::vec3   axis_color          = glm::vec3(0.0f, 0.0f, 0.0f);
+    GLfloat     bg_lines_width      = 0.0035f;
+    GLfloat     main_lines_width    = 0.01f;
     GLfloat     hor_min;
     GLfloat     hor_max;
     GLfloat     ver_min;

@@ -29,19 +29,14 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
     this->ver_grid_step  = ver_grid_step;
     this->position       = position;
     this->hor_center     = hor_center;
-    this->center         = ver_center;
-
-    bg_color         = glm::vec3(0.5f, 0.5f, 0.5f);
-    axis_color       = glm::vec3(0.0f, 0.0f, 0.0f);
-    bg_lines_width   = 0.0035f;
-    main_lines_width = 0.01f;
+    this->ver_center     = ver_center;
 
     GLfloat hor_offset = (hor_delims % 2 ? 0 : hor_grid_step / 2);
     GLfloat ver_offset = (ver_delims % 2 ? 0 : ver_grid_step / 2);
 
     left_border  = -hor_grid_step * (hor_delims / 2) + hor_offset;
-    right_border = hor_grid_step * (hor_delims / 2) - hor_offset;
-    up_border    = ver_grid_step * (ver_delims / 2) - ver_offset;
+    right_border =  hor_grid_step * (hor_delims / 2) - hor_offset;
+    up_border    =  ver_grid_step * (ver_delims / 2) - ver_offset;
     down_border  = -ver_grid_step * (ver_delims / 2) + ver_offset;
 
     // Shift with given position
@@ -56,7 +51,7 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
     for (int i = 0; i < hor_delims; ++i) {
         auto hor_bg_line = std::make_shared<Line>(glm::vec2(tmp_left, down_border),
                                                   glm::vec2(tmp_left, up_border),
-                                                  bg_lines_width, bg_color);
+                                                  bg_lines_width, bg_lines_color);
         bg_lines_hor[i] = hor_bg_line;
         tmp_left += hor_grid_step;
     }
@@ -66,7 +61,7 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
     for (int i = 0; i < ver_delims; ++i) {
         auto ver_bg_line = std::make_shared<Line>(glm::vec2(left_border, tmp_down),
                                                   glm::vec2(right_border, tmp_down),
-                                                  bg_lines_width, bg_color);
+                                                  bg_lines_width, bg_lines_color);
         bg_lines_ver[i] = ver_bg_line;
         tmp_down += ver_grid_step;
     }
@@ -255,7 +250,7 @@ auto Graph::add_point(AxisValue x, AxisValue y) -> void
     GLfloat x_pos = left_border + x_part * (right_border - left_border);
     GLfloat y_pos = down_border + y_part * (up_border - down_border);
 
-    auto point = std::make_shared<Point>(glm::vec2(x_pos, y_pos));
+    auto point = std::make_shared<Point>(glm::vec2(x_pos, y_pos), 0.0075f);
     points.push_back(point);
 
     // Connect last two points with a segment
@@ -269,7 +264,7 @@ auto Graph::add_point(AxisValue x, AxisValue y) -> void
     {
         if ((*it)->get_position().x < left_border)
         {
-            points.erase(it);
+            it = points.erase(it);
             continue;
         }
         it++;
