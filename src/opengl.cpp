@@ -40,6 +40,7 @@ auto OpenGL::initialize() -> void
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);    // 4x MSAA
 
     glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
 
@@ -64,8 +65,9 @@ auto OpenGL::initialize() -> void
     }
 
     glViewport(0, 0, window_width, window_height);
+    glEnable(GL_MULTISAMPLE);   // MSAA for smooth lines
 
-    
+
     // *                                  FreeType initialization
     // * -------------------------------------------------------------------------------------------
     glEnable(GL_BLEND);
@@ -141,7 +143,8 @@ auto OpenGL::get_window() -> GLFWwindow*
     return window;
 }
 
-auto OpenGL::create_shader(const char* name, const char* vertex_file, const char* fragment_file, const char* geometry_file) -> std::shared_ptr<Shader>
+auto OpenGL::create_shader(const char* name, const char* vertex_file, const char* fragment_file,
+                           const char* geometry_file) -> std::shared_ptr<Shader>
 {
     auto shader = std::make_shared<Shader>(vertex_file, fragment_file, geometry_file);
     shaders[name] = shader;

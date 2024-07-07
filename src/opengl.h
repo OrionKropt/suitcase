@@ -19,7 +19,8 @@ public:
     auto initialize() -> void;
 
     auto get_window() -> GLFWwindow*;
-    auto create_shader(const char* name, const char* vertex_file, const char* fragment_file, const char* geometry_file = nullptr) -> std::shared_ptr<Shader>;
+    auto create_shader(const char* name, const char* vertex_file, const char* fragment_file,
+                       const char* geometry_file = nullptr) -> std::shared_ptr<Shader>;
     auto get_shader(const char* name) -> std::shared_ptr<Shader>;
     auto get_char(char c) -> const Character*;
     auto get_key(int key_code) -> GLboolean;
