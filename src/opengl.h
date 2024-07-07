@@ -22,7 +22,7 @@ public:
     auto create_shader(const char* name, const char* vertex_file, const char* fragment_file,
                        const char* geometry_file = nullptr) -> std::shared_ptr<Shader>;
     auto get_shader(const char* name) -> std::shared_ptr<Shader>;
-    auto get_char(char c) -> const Character*;
+    auto get_char(char c) -> std::shared_ptr<Character>;
     auto get_key(int key_code) -> GLboolean;
     auto get_window_width() -> GLint;
     auto get_window_height() -> GLint;
@@ -36,7 +36,7 @@ private:
         GLuint      advance;
     };
 
-    std::unordered_map<char, Character>                         characters;
+    std::unordered_map<char, std::shared_ptr<Character>>        characters;
     std::unordered_map<std::string, std::shared_ptr<Shader>>    shaders;
     GLFWwindow*                                                 window;
 

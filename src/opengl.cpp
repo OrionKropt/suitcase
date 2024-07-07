@@ -123,12 +123,12 @@ auto OpenGL::initialize() -> void
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        Character character = {
+        auto character = std::make_shared<Character>(
                 texture,
                 glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
                 glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
                 (GLuint) (face->glyph->advance.x)
-        };
+                );
         characters.insert(std::make_pair(c, character));
     }
 
@@ -156,9 +156,9 @@ auto OpenGL::get_shader(const char* name) -> std::shared_ptr<Shader>
     return shaders[name];
 }
 
-auto OpenGL::get_char(char c) -> const Character*
+auto OpenGL::get_char(char c) -> std::shared_ptr<Character>
 {
-    return &characters[c];
+    return characters[c];
 }
 
 auto OpenGL::get_key(int key_code) -> GLboolean
