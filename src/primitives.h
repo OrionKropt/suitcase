@@ -134,6 +134,8 @@ public:
     auto get_height_ndc() -> GLfloat;
 
 private:
+    auto calculate_text_size() -> void;
+
     std::shared_ptr<Shader> shader;
     std::string             text;
     GLuint                  VAO;

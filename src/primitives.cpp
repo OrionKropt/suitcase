@@ -439,20 +439,7 @@ Text::Text(const char* text, glm::vec2 position, GLfloat size, GLfloat rotation,
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    text_width_px  = 0;
-    text_height_px = 0;
-    for (const auto& c : this->text)
-    {
-        auto ch = opengl.get_char(c);
-        text_width_px  += (ch->advance >> 6) * size;
-        GLfloat tmp_height = ch->bearing.y * size;
-        if (tmp_height > text_height_px)
-        {
-            text_height_px = tmp_height;
-        }
-    }
-    text_width_ndc  = (2 * text_width_px) / opengl.get_window_width();
-    text_height_ndc = (2 * text_height_px) / opengl.get_window_height();
+    calculate_text_size();
 }
 
 Text::Text(const char* text, GLfloat x, GLfloat y, GLfloat size, GLfloat rotation, GLfloat R, GLfloat G, GLfloat B)
@@ -556,22 +543,7 @@ auto Text::set_position(GLfloat new_x, GLfloat new_y) -> void
 auto Text::set_text(const char* text) -> void
 {
     this->text = text;
-
-    // Recalculate size in pixels & NDC
-    text_width_px  = 0;
-    text_height_px = 0;
-    for (const auto& c : this->text)
-    {
-        auto ch = opengl.get_char(c);
-        text_width_px  += (ch->advance >> 6) * size;
-        GLfloat tmp_height = ch->bearing.y * size;
-        if (tmp_height > text_height_px)
-        {
-            text_height_px = tmp_height;
-        }
-    }
-    text_width_ndc  = (2 * text_width_px) / opengl.get_window_width();
-    text_height_ndc = (2 * text_height_px) / opengl.get_window_height();
+    calculate_text_size();  // Recalculate size in pixels & NDC
 }
 
 auto Text::set_color(glm::vec3 new_color) -> void
@@ -617,4 +589,22 @@ auto Text::get_width_ndc() -> GLfloat
 auto Text::get_height_ndc() -> GLfloat
 {
     return text_height_ndc;
+}
+
+auto Text::calculate_text_size() -> void
+{
+    text_width_px  = 0;
+    text_height_px = 0;
+    for (const auto& c : this->text)
+    {
+        auto ch = opengl.get_char(c);
+        text_width_px  += (ch->advance >> 6) * size;
+        GLfloat tmp_height = ch->bearing.y * size;
+        if (tmp_height > text_height_px)
+        {
+            text_height_px = tmp_height;
+        }
+    }
+    text_width_ndc  = (2 * text_width_px) / opengl.get_window_width();
+    text_height_ndc = (2 * text_height_px) / opengl.get_window_height();
 }
