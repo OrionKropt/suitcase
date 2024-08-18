@@ -6,20 +6,20 @@
 #include "error.h"
 
 
-Data_logger::Data_logger() : ctx(nullptr), real_power("P", "kW"),
+DataLogger::DataLogger() : ctx(nullptr), real_power("P", "kW"),
 apparent_power("S", "kVA"),
 reactive_power("Q", "kVAR")
 {}
 
 
-Data_logger::~Data_logger()
+DataLogger::~DataLogger()
 {
 	modbus_close(ctx);
 	modbus_free(ctx);
 }
 
 
-auto Data_logger::init() -> void
+auto DataLogger::init() -> void
 {
 	sprintf(setup.port, "\COM1");
 	setup.port_speed = 19200;
@@ -73,7 +73,7 @@ auto Data_logger::init() -> void
 	is_float = true;
 }
 
-auto Data_logger::read_data_from_device() -> int
+auto DataLogger::read_data_from_device() -> int
 {
 	int res = 0;
 	res = read_power_from_device(real_power);
@@ -130,7 +130,7 @@ auto Data_logger::read_data_from_device() -> int
 	return 0;
 }
 
-auto Data_logger::write_data_to_file() -> void const
+auto DataLogger::write_data_to_file() -> void const
 {
 
 #ifdef DEBUG
@@ -163,7 +163,7 @@ auto Data_logger::write_data_to_file() -> void const
 	
 }
 
-auto Data_logger::regs_init() -> void
+auto DataLogger::regs_init() -> void
 {
 	// ----------real_power----------
 	// int
@@ -244,7 +244,7 @@ auto Data_logger::regs_init() -> void
 }
 
 
-auto Data_logger::read_power_from_device(Power& power) -> int
+auto DataLogger::read_power_from_device(Power& power) -> int
 {
 	
 	if (!is_float)
@@ -359,7 +359,7 @@ auto Data_logger::read_power_from_device(Power& power) -> int
 	return 0;
 }
 
-auto Data_logger::read_current_from_device() -> int
+auto DataLogger::read_current_from_device() -> int
 {
 	if (!is_float)
 	{
@@ -495,7 +495,7 @@ auto Data_logger::read_current_from_device() -> int
 	return 0;
 }
 
-auto Data_logger::read_voltage_from_device() -> int
+auto DataLogger::read_voltage_from_device() -> int
 {
 	if (!is_float)
 	{
@@ -649,7 +649,7 @@ auto Data_logger::read_voltage_from_device() -> int
 	return 0;
 }
 
-auto Data_logger::print_setup() -> void const
+auto DataLogger::print_setup() -> void const
 {
 #ifdef DEBUG
 	std::cout << "\nSETUP\n\n";
@@ -671,7 +671,7 @@ auto Data_logger::print_setup() -> void const
 }
 
 
-auto Data_logger::write_power_to_file(Power& power) -> void const
+auto DataLogger::write_power_to_file(Power& power) -> void const
 {
 	float A = 0, B = 0, C = 0;
 	float min = 0, max = 0, total = 0;
@@ -707,7 +707,7 @@ auto Data_logger::write_power_to_file(Power& power) -> void const
 #endif // DEBUG
 }
 
-auto Data_logger::write_demand_power_to_file(Power& power) -> void const
+auto DataLogger::write_demand_power_to_file(Power& power) -> void const
 {
 	float total = 0, peak = 0;
 	int pow = setup.scale_w[0];
@@ -727,7 +727,7 @@ auto Data_logger::write_demand_power_to_file(Power& power) -> void const
 	std::cout << "Peak " << peak << ' ' << power.metric << "\n\n";
 }
 
-auto Data_logger::write_current_to_file() -> void const
+auto DataLogger::write_current_to_file() -> void const
 {
 	float phase_3 = 0;
 	float A = 0, B = 0, C = 0, N = 0;
@@ -802,7 +802,7 @@ auto Data_logger::write_current_to_file() -> void const
 
 }
 
-auto Data_logger::write_voltage_to_file() -> void const
+auto DataLogger::write_voltage_to_file() -> void const
 {
 	float LL_3P_average = 0, LN_3P_average = 0;
 	float AB = 0, BC = 0, CA = 0;
@@ -816,7 +816,7 @@ auto Data_logger::write_voltage_to_file() -> void const
 
 
 
-auto Data_logger::fast_pow(const int& n, const int& m) -> int
+auto DataLogger::fast_pow(const int& n, const int& m) -> int
 {
 	if (m == 0) return 1;
 	
