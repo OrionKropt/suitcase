@@ -8,7 +8,7 @@
 class Setup
 {
 public:
-	uint16_t mode[2];                        // 0 = IEC, 1 - IEEE
+	uint16_t mode[2];                            // 0 = IEC, 1 - IEEE
 	
 	int16_t scale_i[2]{ 0 };                     // current, power of 10
 	int16_t scale_v[2]{ 0 };                     // voltage, power of 10
