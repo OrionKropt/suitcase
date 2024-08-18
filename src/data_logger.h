@@ -13,11 +13,11 @@
 
 #define DEBUG
 
-class Data_logger
+class DataLogger
 {
 public:
-	Data_logger();
-	~Data_logger();
+	DataLogger();
+	~DataLogger();
 	auto init() -> void;
 
 	auto read_data_from_device() -> int;
