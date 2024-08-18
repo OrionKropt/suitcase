@@ -160,6 +160,7 @@ auto DataLogger::write_data_to_file() -> void const
 	std::cout << "\nVOLTAGE\n";
 #endif // DEBUG
 
+	write_voltage_to_file();
 	
 }
 
@@ -811,6 +812,70 @@ auto DataLogger::write_voltage_to_file() -> void const
 	float AN_max = 0, BN_max = 0, CN_max = 0;
 	float AB_min = 0, BC_min = 0, CA_min = 0;
 	float AN_min = 0, BN_min = 0, CN_min = 0;
+
+	int pow = setup.scale_v[0];
+	int scale = fast_pow(10, pow);
+
+	if (!is_float)
+	{
+		LL_3P_average = (float) voltage.LL_3P_average[0] / scale;
+		LN_3P_average = (float) voltage.LN_3P_average[0] / scale;
+		AB = (float) voltage.AB[0] / scale;
+		BC = (float) voltage.BC[0] / scale;
+		CA = (float) voltage.CA[0] / scale;
+		AN = (float) voltage.AN[0] / scale;
+		BN = (float) voltage.BN[0] / scale;
+		CN = (float) voltage.CN[0] / scale;
+		AB_max = (float) voltage.max.AB[0];
+		BC_max = (float) voltage.max.BC[0];
+		CA_max = (float) voltage.max.CA[0];
+		AN_max = (float) voltage.max.AN[0];
+		BN_max = (float) voltage.max.BN[0];
+		CN_max = (float) voltage.max.CN[0];
+		AB_min = (float)voltage.min.AB[0];
+		BC_min = (float)voltage.min.BC[0];
+		CA_min = (float)voltage.min.CA[0];
+		AN_min = (float)voltage.min.AN[0];
+		BN_min = (float)voltage.min.BN[0];
+		CN_min = (float)voltage.min.CN[0];
+	}
+	else
+	{
+		LL_3P_average = modbus_get_float_abcd((uint16_t*)voltage.LL_3P_average);
+		LN_3P_average = modbus_get_float_abcd((uint16_t*)voltage.LN_3P_average);
+		AB = modbus_get_float_abcd((uint16_t*)voltage.AB);
+		BC = modbus_get_float_abcd((uint16_t*)voltage.BC);
+		CA = modbus_get_float_abcd((uint16_t*)voltage.CA);
+		AN = modbus_get_float_abcd((uint16_t*)voltage.AN);;
+		BN = modbus_get_float_abcd((uint16_t*)voltage.BN);
+		CN = modbus_get_float_abcd((uint16_t*)voltage.CN);
+		AB_max = modbus_get_float_abcd((uint16_t*)voltage.max.AB);
+		BC_max = modbus_get_float_abcd((uint16_t*)voltage.max.BC);
+		CA_max = modbus_get_float_abcd((uint16_t*)voltage.max.CA);
+		AN_max = modbus_get_float_abcd((uint16_t*)voltage.max.AN);
+		BN_max = modbus_get_float_abcd((uint16_t*)voltage.max.BN);
+		CN_max = modbus_get_float_abcd((uint16_t*)voltage.max.CN);
+		AB_min = modbus_get_float_abcd((uint16_t*)voltage.min.AB);
+		BC_min = modbus_get_float_abcd((uint16_t*)voltage.min.BC);
+		CA_min = modbus_get_float_abcd((uint16_t*)voltage.min.CA);
+		AN_min = modbus_get_float_abcd((uint16_t*)voltage.min.AN);
+		BN_min = modbus_get_float_abcd((uint16_t*)voltage.min.BN);
+		CN_min = modbus_get_float_abcd((uint16_t*)voltage.min.CN);
+	}
+
+#ifdef DEBUG
+	std::cout << "Voltage L-L, 3 phase " << LL_3P_average << '\n';
+	std::cout << "Voltage L-N, 3 phase " << LN_3P_average << '\n';
+	std::cout << "AB\tBC\tCA\n";
+	std::cout << AB << '\t' <<BC << '\t' << CA << "\n\n";
+	std::cout << "AN\tBN\tCN\n";
+	std::cout << AN << '\t' << BN << '\t' << CN << "\n\n";
+	std::cout << "\t\tMAX\t\t\t\tMIN\n\n";
+	std::cout << "AB\tBC\tCA\t\t\tAB\tBC\tCA\n";
+	std::cout << AB_max << '\t' << BC_max << '\t' << CA_max << "\t\t\t" << AB_min << '\t' << BC_min << '\t' << CA_min << "\n\n";
+	std::cout << "AN\tBN\tCN\t\t\tAN\tBN\tCN\n";
+	std::cout << AN_max << '\t' << BN_max << '\t' << CN_max << "\t\t\t" << AN_min << '\t' << BN_min << '\t' << CN_min << '\n';
+#endif // DEBUG
 
 }
 
