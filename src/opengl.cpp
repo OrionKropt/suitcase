@@ -37,10 +37,12 @@ auto OpenGL::initialize() -> void
         PRINT_ERROR("GLFW initialization failed", true);
     }
 
+    glfwSetErrorCallback(error_callback);
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 4);    // 4x MSAA
+    glfwWindowHint(GLFW_SAMPLES, 4);        // 4x MSAA
 
     glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
 
@@ -54,6 +56,7 @@ auto OpenGL::initialize() -> void
     glfwSetKeyCallback(window, key_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);    // Enable VSync
 
 
     // *                                    GLAD initialization
@@ -174,6 +177,11 @@ auto OpenGL::get_window_width() -> GLint
 auto OpenGL::get_window_height() -> GLint
 {
     return window_height;
+}
+
+auto OpenGL::error_callback(int error, const char* what) -> void
+{
+    PRINT_ERROR("OpenGL error occurred.", false, "Details: {}\nCode: {}\n", what, error);
 }
 
 auto OpenGL::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void

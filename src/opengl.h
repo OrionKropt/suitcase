@@ -47,6 +47,7 @@ private:
     static GLint                    window_height;
     static std::vector<GLboolean>   keys;
 
+    static auto error_callback(int error, const char* what) -> void;
     static auto key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void;
     static auto framebuffer_resize_callback(GLFWwindow* window, int width, int height) -> void;
 };
