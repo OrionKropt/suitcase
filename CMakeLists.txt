@@ -8,6 +8,12 @@ project(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# * Enable -O3 optimization
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+
+# * Static linking
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++")
+
 # * Collecting source files
 file(GLOB_RECURSE _SOURCES		CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE _SOURCES_C	CONFIGURE_DEPENDS "src/*.c")
