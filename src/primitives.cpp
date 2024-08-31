@@ -2,6 +2,7 @@
 
 #include <format>
 #include <iostream>
+#include <algorithm>
 #include <glm/gtc/type_ptr.hpp>
 
 OpenGL& opengl = OpenGL::get_instance();
@@ -607,4 +608,140 @@ auto Text::calculate_text_size() -> void
     }
     text_width_ndc  = (2 * text_width_px) / opengl.get_window_width();
     text_height_ndc = (2 * text_height_px) / opengl.get_window_height();
+}
+
+
+Button::Button(glm::vec2 position, GLfloat width, GLfloat height, void (*on_press)(), void (*on_release)(), const char* text, GLfloat text_size, glm::vec3 color)
+{
+    this->position   = position;
+    this->width      = width;
+    this->height     = height;
+    this->on_press   = on_press;
+    this->on_release = on_release;
+    this->color      = color;
+
+    shader = opengl.get_shader("primitives");
+
+    button_pressed = false;
+    button_hovered = false;
+    lmb_hold = false;
+    lmb_pressed = false;
+    window  = opengl.get_window();
+
+    left_border  = position.x - width;
+    right_border = position.x + width;
+    up_border    = position.y + height;
+    down_border  = position.y - height;
+
+    auto text_tmp = std::make_shared<Text>(text, position, text_size);
+    text_tmp->move(-text_tmp->get_width_ndc() / 2,
+                   -text_tmp->get_height_ndc() / 2);
+    this->text = text_tmp;
+
+
+    GLfloat vertices[] = {
+            left_border,  down_border,
+            left_border,  up_border,
+            right_border, up_border,
+            right_border, down_border
+    };
+
+    GLuint indices[] = {
+            0, 1, 2,
+            0, 2, 3
+    };
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*) 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+Button::Button(GLfloat x, GLfloat y, GLfloat width, GLfloat height, void (*on_press)(), void (*on_release)(), const char* text, GLfloat text_size, GLfloat R, GLfloat G, GLfloat B)
+    : Button(glm::vec2(x, y), width, height, on_press, on_release, text, text_size, glm::vec3(R, G, B)) {}
+
+Button::~Button()
+{
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+}
+
+auto Button::draw() -> void
+{
+    shader->use();
+    shader->set_vec3("color", color);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    text->draw();
+    check_pressing();
+}
+
+auto Button::set_on_press(void (*callback)()) -> void
+{
+    on_press = callback;
+}
+
+auto Button::set_on_release(void (*callback)()) -> void
+{
+    on_release = callback;
+}
+
+auto Button::set_color(glm::vec3 new_color) -> void
+{
+    color = new_color;
+}
+
+auto Button::set_color(GLfloat R, GLfloat G, GLfloat B) -> void
+{
+    color = glm::vec3(R, G, B);
+}
+
+auto Button::check_pressing() -> void
+{
+    GLfloat cursor_x_ndc = opengl.get_mouse_x();
+    GLfloat cursor_y_ndc = opengl.get_mouse_y();
+
+    GLboolean is_inside = (left_border <= cursor_x_ndc && cursor_x_ndc <= right_border) &&
+                          (down_border <= cursor_y_ndc && cursor_y_ndc <= up_border);
+
+    lmb_hold = lmb_pressed;         // If it was still pressed in previous iteration, consider it to be held
+    lmb_pressed = opengl.get_mouse_button(GLFW_MOUSE_BUTTON_LEFT);
+
+    // Highlight on hover
+    if (!button_hovered && is_inside)
+    {
+        button_hovered = true;
+        color -= glm::vec3(0.1f);
+    }
+    if (button_hovered && !button_pressed && !is_inside)
+    {
+        button_hovered = false;
+        color += glm::vec3(0.1f);
+    }
+
+    // Check the click
+    if (!button_pressed && lmb_pressed && !lmb_hold && is_inside)
+    {
+        button_pressed = true;
+        color -= glm::vec3(0.1f);
+        on_press();
+    }
+    if (button_pressed && !lmb_pressed)
+    {
+        button_pressed = false;
+        color += glm::vec3(0.1f);
+        on_release();
+    }
 }

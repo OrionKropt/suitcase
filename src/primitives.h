@@ -49,7 +49,7 @@ class Point : public Primitive
 {
 public:
     explicit Point(glm::vec2 position, GLfloat width = 0.015f, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
-    Point(GLfloat point_x, GLfloat point_y, GLfloat width = 0.015f, GLfloat R = 1.0, GLfloat G = 0.0f, GLfloat B = 0.0f);
+    Point(GLfloat point_x, GLfloat point_y, GLfloat width = 0.015f, GLfloat R = 1.0f, GLfloat G = 0.0f, GLfloat B = 0.0f);
     ~Point() override;
 
     auto draw() -> void override;
@@ -109,6 +109,7 @@ private:
     GLfloat                 width;          // NDC
 };
 
+
 class Text : public Primitive
 {
 public:
@@ -148,4 +149,52 @@ private:
     GLfloat                 text_height_px;     // px
     GLfloat                 text_width_ndc;     // NDC
     GLfloat                 text_height_ndc;    // NDC
+};
+
+
+class Button : public Primitive
+{
+public:
+    Button(glm::vec2 position, GLfloat width, GLfloat height,
+           void (*on_press)(), void (*on_release)(), const char* text = nullptr,
+           GLfloat text_size = 0.4f, glm::vec3 color = glm::vec3(0.9f, 0.9f, 0.9f));
+
+    Button(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
+           void (*on_press)(), void (*on_release)(), const char* text = nullptr,
+           GLfloat text_size = 0.4f, GLfloat R = 0.9f, GLfloat G = 0.9f, GLfloat B = 0.9f);
+
+    ~Button() override;
+
+    auto draw() -> void override;
+    auto set_on_press(void (*callback)()) -> void;
+    auto set_on_release(void (*callback)()) -> void;
+    auto set_color(glm::vec3 new_color) -> void;
+    auto set_color(GLfloat R, GLfloat G, GLfloat B) -> void;
+
+private:
+    auto check_pressing() -> void;
+
+    // Fun fact: when lmb_* vars were static click detection
+    // worked only for first created button. Why? IDK
+    GLboolean               lmb_pressed;
+    GLboolean               lmb_hold;
+    GLboolean               button_pressed;
+    GLboolean               button_hovered;
+    GLFWwindow*             window;
+    GLfloat                 left_border;
+    GLfloat                 right_border;
+    GLfloat                 up_border;
+    GLfloat                 down_border;
+    std::shared_ptr<Shader> shader;
+
+    GLuint                  VAO;
+    GLuint                  VBO;
+    GLuint                  EBO;
+    glm::vec2               position;           // NDC
+    GLfloat                 width;              // NDC
+    GLfloat                 height;             // NDC
+    glm::vec3               color;
+    void                    (*on_press)();
+    void                    (*on_release)();
+    std::shared_ptr<Text>   text;
 };
