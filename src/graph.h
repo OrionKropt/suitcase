@@ -5,8 +5,20 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <unordered_map>
 #include <glm/glm.hpp>
 #include "primitives.h"
+
+// Converts given time in seconds/minutes/hours to milliseconds cause Graph steps use ms
+auto operator""_s(GLuint64 time) -> GLfloat;
+auto operator""_s(long double time) -> GLfloat;
+
+auto operator""_m(GLuint64 time) -> GLfloat;
+auto operator""_m(long double time) -> GLfloat;
+
+auto operator""_h(GLuint64 time) -> GLfloat;
+auto operator""_h(long double time) -> GLfloat;
+
 
 class Graph
 {
@@ -23,8 +35,10 @@ public:
     ~Graph();
 
     auto draw() -> void;
-    auto add_point(AxisValue x, AxisValue y) -> void;
-    auto add_segment(glm::vec2 start, glm::vec2 end) -> void;
+    auto create_curve(const char* name, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f)) -> void;
+    auto create_curve(const char* name, GLfloat R = 1.0f, GLfloat G = 0.0f, GLfloat B = 0.0f) -> void;
+    auto add_point(const char* curve_name, AxisValue x, AxisValue y) -> void;
+    auto add_segment(const char* curve_name, glm::vec2 start, glm::vec2 end) -> void;
     auto move(glm::vec2 delta) -> void;
     auto move(GLfloat dx, GLfloat dy) -> void;
     auto set_position(glm::vec2 new_position) -> void;
@@ -79,12 +93,21 @@ private:
     std::vector<AxisValue> hor_values;
     std::vector<AxisValue> ver_values;
 
+    struct Curve
+    {
+        explicit Curve(glm::vec3 color);
+
+        glm::vec3                           color{};
+        std::vector<std::shared_ptr<Point>> points;
+        std::vector<std::shared_ptr<Line>>  segments;
+    };
+
+    std::unordered_map<std::string, std::shared_ptr<Curve>> curves;     // Curve name -> curve
+
     std::vector<std::shared_ptr<Line>>      bg_lines_hor;
     std::vector<std::shared_ptr<Line>>      bg_lines_ver;
     std::vector<std::shared_ptr<Line>>      main_lines;
     std::vector<std::shared_ptr<Triangle>>  arrows;
-    std::vector<std::shared_ptr<Line>>      segments;
-    std::vector<std::shared_ptr<Point>>     points;
     std::vector<std::shared_ptr<Text>>      hor_texts;
     std::vector<std::shared_ptr<Text>>      ver_texts;
     std::vector<std::shared_ptr<Text>>      axis_labels;

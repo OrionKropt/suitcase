@@ -5,9 +5,20 @@
 #include <iostream>
 #include "error.h"
 
-#define PI 3.14159265358979323846
-
 extern OpenGL& opengl;
+
+auto operator""_s(GLuint64 time) -> GLfloat { return (GLfloat) time * 1000; }
+auto operator""_s(long double time) -> GLfloat { return (GLfloat) time * 1000; }
+
+auto operator""_m(GLuint64 time) -> GLfloat { return (GLfloat) time * 60000; }
+auto operator""_m(long double time) -> GLfloat { return (GLfloat) time * 60000; }
+
+auto operator""_h(GLuint64 time) -> GLfloat { return (GLfloat) time * 3600000; }
+auto operator""_h(long double time) -> GLfloat { return (GLfloat) time * 3600000; }
+
+
+Graph::Curve::Curve(glm::vec3 color)
+    : color(color) {}
 
 
 Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
@@ -124,7 +135,7 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
     for (int i = 0; i < hor_delims; ++i)
     {
         hor_rotation_deg = 55.0f;  // ! Hardcode
-        hor_rotation_rad = hor_rotation_deg * PI / 180.0f;
+        hor_rotation_rad = hor_rotation_deg * M_PI / 180.0f;
 
         std::string raw_text = get_raw_text(hor_values[i]);
         auto text = std::make_shared<Text>(raw_text.c_str(),
@@ -185,11 +196,14 @@ auto Graph::draw() -> void
         for (const auto& arrow: arrows) {
             arrow->draw();
         }
-        for (const auto& segment: segments) {
-            segment->draw();
-        }
-        for (const auto& point: points) {
-            point->draw();
+        for (const auto& [name, curve] : curves)
+        {
+            for (const auto& segment : curve->segments) {
+                segment->draw();
+            }
+            for (const auto& point : curve->points) {
+                point->draw();
+            }
         }
         for (const auto& hor_text: hor_texts) {
             hor_text->draw();
@@ -203,8 +217,28 @@ auto Graph::draw() -> void
     }
 }
 
-auto Graph::add_point(AxisValue x, AxisValue y) -> void
+auto Graph::create_curve(const char* name, glm::vec3 color) -> void
 {
+    if (curves.contains(name))
+    {
+        PRINT_ERROR("Curve with given name already exists in this Graph.", true, "Name: {}\n", name);
+    }
+    curves.emplace(name, std::make_shared<Curve>(color));
+}
+
+auto Graph::create_curve(const char* name, GLfloat R, GLfloat G, GLfloat B) -> void
+{
+    create_curve(name, glm::vec3(R, G, B));
+}
+
+auto Graph::add_point(const char* curve_name, AxisValue x, AxisValue y) -> void
+{
+    if (!curves.contains(curve_name))
+    {
+        PRINT_ERROR("No Curve with given name exists.", true, "Name: {}\n", curve_name);
+    }
+    auto this_curve = curves.at(curve_name);
+
     GLfloat x_part = find_value(0, x);
     GLfloat y_part = find_value(1, y);
 
@@ -223,7 +257,7 @@ auto Graph::add_point(AxisValue x, AxisValue y) -> void
         }
 
         GLfloat x_fract = x_part - 1.0f;
-        GLint values_to_move = lround(x_fract * (hor_delims - 1));
+        GLint values_to_move = ceil(x_fract * (hor_delims - 1));
         GLfloat x_ceil_fract = static_cast<GLfloat>(values_to_move) / (hor_delims - 1);
         x_part = 1.0f - (x_ceil_fract - x_fract);
 
@@ -237,44 +271,48 @@ auto Graph::add_point(AxisValue x, AxisValue y) -> void
         update_labels();
 
         // Shift all points & segments to the left
-        for (const auto& point : points)
+        for (const auto& [name, curve] : curves)
         {
-            point->move(-values_to_move * hor_grid_step, 0.0f);
-        }
-        for (const auto& segment : segments)
-        {
-            segment->move(-values_to_move * hor_grid_step, 0.0f);
+            for (const auto& point : curve->points)
+            {
+                point->move(-values_to_move * hor_grid_step, 0.0f);
+            }
+            for (const auto& segment : curve->segments)
+            {
+                segment->move(-values_to_move * hor_grid_step, 0.0f);
+            }
         }
     }
 
     GLfloat x_pos = left_border + x_part * (right_border - left_border);
     GLfloat y_pos = down_border + y_part * (up_border - down_border);
 
-    auto point = std::make_shared<Point>(glm::vec2(x_pos, y_pos), 0.0075f);
-    points.push_back(point);
+    // * Real Point creation is here (I need to split that function...)
+    auto point = std::make_shared<Point>(glm::vec2(x_pos, y_pos), 0.0075f, this_curve->color);
+    this_curve->points.push_back(point);
 
     // Connect last two points with a segment
-    if (points.size() >= 2)
+    if (this_curve->points.size() >= 2)
     {
-        add_segment((*(points.end()-2))->get_position(), (*(points.end()-1))->get_position());
+        add_segment(curve_name, (*(this_curve->points.end()-2))->get_position(), (*(this_curve->points.end()-1))->get_position());
     }
 
     // If some points/segments gone further than left border, delete them
-    for (auto it = points.begin(); it < points.end();)
+    for (auto it = this_curve->points.begin(); it < this_curve->points.end();)
     {
         if ((*it)->get_position().x < left_border)
         {
-            it = points.erase(it);
+            it = this_curve->points.erase(it);
             continue;
         }
         it++;
     }
 
-    for (auto it = segments.begin(); it < segments.end();)
+    for (auto it = this_curve->segments.begin(); it < this_curve->segments.end();)
     {
         if ((*it)->get_end_position().x <= left_border)
         {
-            it = segments.erase(it);
+            it = this_curve->segments.erase(it);
             continue;
         }
         // Short the segment if it particularly crosses the border
@@ -289,14 +327,20 @@ auto Graph::add_point(AxisValue x, AxisValue y) -> void
     }
 }
 
-auto Graph::add_segment(glm::vec2 start, glm::vec2 end) -> void
+auto Graph::add_segment(const char* curve_name, glm::vec2 start, glm::vec2 end) -> void
 {
+    if (!curves.contains(curve_name))
+    {
+        PRINT_ERROR("No Curve with given name exists.", true, "Name: {}\n", curve_name);
+    }
+    auto this_curve = curves.at(curve_name);
+
     if (start.x > end.x)
     {
         std::swap(start, end);
     }
-    auto segment = std::make_shared<Line>(glm::vec2(start.x, start.y), glm::vec2(end.x, end.y));
-    segments.push_back(segment);
+    auto segment = std::make_shared<Line>(glm::vec2(start.x, start.y), glm::vec2(end.x, end.y), 0.015f, this_curve->color);
+    this_curve->segments.push_back(segment);
 }
 
 auto Graph::move(glm::vec2 delta) -> void
@@ -326,11 +370,14 @@ auto Graph::move(GLfloat dx, GLfloat dy) -> void
     for (const auto& arrow: arrows) {
         arrow->move(dx, dy);
     }
-    for (const auto& segment: segments) {
-        segment->move(dx, dy);
-    }
-    for (const auto& point: points) {
-        point->move(dx, dy);
+    for (const auto& [name, curve] : curves)
+    {
+        for (const auto& segment : curve->segments) {
+            segment->move(dx, dy);
+        }
+        for (const auto& point : curve->points) {
+            point->move(dx, dy);
+        }
     }
     for (const auto& hor_text: hor_texts) {
         hor_text->move(dx, dy);
@@ -438,7 +485,7 @@ auto Graph::initialize_axis_texts(std::vector<AxisValue>& values, AxisValue& zer
                    {
                        for (int i = begin, j = 0; i <= end; ++i, ++j)
                        {
-                           values[j] = alternative + i * std::chrono::seconds(static_cast<GLint64>(value_step));
+                           values[j] = alternative + i * std::chrono::milliseconds(static_cast<GLint64>(value_step));
                        }
                    }
                }, zero_value);
@@ -503,9 +550,9 @@ auto Graph::find_value(GLint axis, AxisValue axis_value) -> GLfloat
                 }
                 else if constexpr (std::is_same_v<Type, TimePoint>)
                 {
-                    GLint64 offset    = std::chrono::duration_cast<std::chrono::seconds>(get<TimePoint>(*(values->begin())).time_since_epoch()).count();
-                    GLint64 end_value = std::chrono::duration_cast<std::chrono::seconds>(get<TimePoint>(*(values->end()-1)).time_since_epoch()).count();
-                    GLint64 value     = std::chrono::duration_cast<std::chrono::seconds>(alternative.time_since_epoch()).count();
+                    GLint64 offset    = std::chrono::duration_cast<std::chrono::milliseconds>(get<TimePoint>(*(values->begin())).time_since_epoch()).count();
+                    GLint64 end_value = std::chrono::duration_cast<std::chrono::milliseconds>(get<TimePoint>(*(values->end()-1)).time_since_epoch()).count();
+                    GLint64 value     = std::chrono::duration_cast<std::chrono::milliseconds>(alternative.time_since_epoch()).count();
                     result = (static_cast<GLfloat>(value - offset) / static_cast<GLfloat>(end_value - offset));
                 }
                 return result;
@@ -530,7 +577,7 @@ auto Graph::create_next_value(AxisValue& current, GLfloat step) -> AxisValue
                 }
                 else if constexpr (std::is_same_v<Type, TimePoint>)
                 {
-                    result = alternative + std::chrono::seconds(static_cast<GLint64>(step));
+                    result = alternative + std::chrono::milliseconds(static_cast<GLint64>(step));
                 }
                 return result;
             }, current);
