@@ -10,9 +10,12 @@
 #include FT_FREETYPE_H
 #include "error.h"
 
+std::vector<GLboolean> OpenGL::keys(1024, false);
+std::vector<GLboolean> OpenGL::mouse_buttons(8, false);
 GLint OpenGL::window_width;
 GLint OpenGL::window_height;
-std::vector<GLboolean> OpenGL::keys = std::vector<GLboolean>(1024, false);
+GLfloat OpenGL::mouse_x;
+GLfloat OpenGL::mouse_y;
 
 OpenGL::OpenGL() = default;
 
@@ -45,6 +48,7 @@ auto OpenGL::initialize() -> void
     glfwWindowHint(GLFW_SAMPLES, 4);        // 4x MSAA
 
     glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     window = glfwCreateWindow(window_width, window_height, "PM710 Graphics", nullptr, nullptr);
     if (!window)
@@ -53,8 +57,12 @@ auto OpenGL::initialize() -> void
         PRINT_ERROR("Window creation failed", true);
     }
 
+    // Callbacks
     glfwSetKeyCallback(window, key_callback);
     glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);    // Enable VSync
 
@@ -169,6 +177,11 @@ auto OpenGL::get_key(int key_code) -> GLboolean
     return keys[key_code];
 }
 
+auto OpenGL::get_mouse_button(int button) -> GLboolean
+{
+    return mouse_buttons[button];
+}
+
 auto OpenGL::get_window_width() -> GLint
 {
     return window_width;
@@ -177,6 +190,16 @@ auto OpenGL::get_window_width() -> GLint
 auto OpenGL::get_window_height() -> GLint
 {
     return window_height;
+}
+
+auto OpenGL::get_mouse_x() -> GLfloat
+{
+    return mouse_x;
+}
+
+auto OpenGL::get_mouse_y() -> GLfloat
+{
+    return mouse_y;
 }
 
 auto OpenGL::error_callback(int error, const char* what) -> void
@@ -194,6 +217,17 @@ auto OpenGL::framebuffer_resize_callback(GLFWwindow* window, int width, int heig
     glViewport(0, 0, width, height);
     window_width = width;
     window_height = height;
+}
+
+auto OpenGL::cursor_position_callback(GLFWwindow* window, double x, double y) -> void
+{
+    mouse_x = 2 * (x / window_width) - 1;
+    mouse_y = 1 - 2 * (y / window_height);
+}
+
+auto OpenGL::mouse_button_callback(GLFWwindow* window, int button, int action, int mods) -> void
+{
+    mouse_buttons[button] = action;
 }
 
 Shader::Shader(const char* vertex_path, const char* fragment_path, const char* geometry_path)

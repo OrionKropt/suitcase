@@ -24,8 +24,11 @@ public:
     auto get_shader(const char* name) -> std::shared_ptr<Shader>;
     auto get_char(char c) -> std::shared_ptr<Character>;
     auto get_key(int key_code) -> GLboolean;
+    auto get_mouse_button(int button) -> GLboolean;
     auto get_window_width() -> GLint;
     auto get_window_height() -> GLint;
+    auto get_mouse_x() -> GLfloat;
+    auto get_mouse_y() -> GLfloat;
 
 private:
     struct Character
@@ -43,13 +46,18 @@ private:
     OpenGL();
     ~OpenGL();
 
+    static std::vector<GLboolean>   keys;
+    static std::vector<GLboolean>   mouse_buttons;
     static GLint                    window_width;
     static GLint                    window_height;
-    static std::vector<GLboolean>   keys;
+    static GLfloat                  mouse_x;        // NDC
+    static GLfloat                  mouse_y;        // NDC
 
     static auto error_callback(int error, const char* what) -> void;
     static auto key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void;
     static auto framebuffer_resize_callback(GLFWwindow* window, int width, int height) -> void;
+    static auto cursor_position_callback(GLFWwindow* window, double x, double y) -> void;
+    static auto mouse_button_callback(GLFWwindow* window, int button, int action, int mods) -> void;
 };
 
 
