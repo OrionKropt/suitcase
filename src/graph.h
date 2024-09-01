@@ -19,6 +19,7 @@ auto operator""_m(long double time) -> GLfloat;
 auto operator""_h(GLuint64 time) -> GLfloat;
 auto operator""_h(long double time) -> GLfloat;
 
+auto to_wstring(const std::string& str) -> std::wstring;
 
 class Graph
 {
@@ -27,7 +28,7 @@ public:
     using AxisValue = std::variant<GLfloat, GLint64, TimePoint>;
 
     // TODO: Add functional for *_value_skip AND scaling on not 1:1 resolution
-    Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
+    Graph(const wchar_t* abscissa, const wchar_t* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
           GLfloat hor_value_step, GLfloat ver_value_step, GLint hor_delims, GLint ver_delims,
           GLint hor_center = 0, GLint ver_center = 0, GLint hor_value_skip = 0,
           GLint ver_value_skip = 0, GLfloat hor_grid_step = 0.05f, GLfloat ver_grid_step = 0.05f,
@@ -54,15 +55,15 @@ public:
 
 private:
     auto initialize_axis_texts(std::vector<AxisValue>& values, AxisValue& zero_value, GLint delims, GLint center, GLfloat value_step) -> void;
-    auto get_raw_text(AxisValue variant) -> std::string;
+    auto get_raw_text(AxisValue variant) -> std::wstring;
     auto find_value(GLint axis, AxisValue axis_value) -> GLfloat;
     auto create_next_value(AxisValue& current, GLfloat step) -> AxisValue;
     auto update_labels() -> void;
 
     bool        enabled;                // Should Graph be rendered
 
-    std::string abscissa;               // Labels for axis'
-    std::string ordinate;
+    std::wstring abscissa;               // Labels for axis'
+    std::wstring ordinate;
     AxisValue   hor_zero_value;         // Values at (0, 0) point
     AxisValue   ver_zero_value;
     GLfloat     hor_value_step;         // Steps between values: value[n] = value[n-1] + step

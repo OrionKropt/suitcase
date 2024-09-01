@@ -420,7 +420,7 @@ auto Line::set_shader(const char* shader_name) -> void
 }
 
 
-Text::Text(const char* text, glm::vec2 position, GLfloat size, GLfloat rotation, glm::vec3 color)
+Text::Text(const wchar_t* text, glm::vec2 position, GLfloat size, GLfloat rotation, glm::vec3 color)
 {
     this->text     = text;
     this->position = position;
@@ -443,7 +443,7 @@ Text::Text(const char* text, glm::vec2 position, GLfloat size, GLfloat rotation,
     calculate_text_size();
 }
 
-Text::Text(const char* text, GLfloat x, GLfloat y, GLfloat size, GLfloat rotation, GLfloat R, GLfloat G, GLfloat B)
+Text::Text(const wchar_t* text, GLfloat x, GLfloat y, GLfloat size, GLfloat rotation, GLfloat R, GLfloat G, GLfloat B)
     : Text(text, glm::vec2(x, y), size, rotation, glm::vec3(R, G, B)) {}
 
 Text::~Text()
@@ -541,7 +541,7 @@ auto Text::set_position(GLfloat new_x, GLfloat new_y) -> void
     set_position(glm::vec2(new_x, new_y));
 }
 
-auto Text::set_text(const char* text) -> void
+auto Text::set_text(const wchar_t* text) -> void
 {
     this->text = text;
     calculate_text_size();  // Recalculate size in pixels & NDC
@@ -611,7 +611,7 @@ auto Text::calculate_text_size() -> void
 }
 
 
-Button::Button(glm::vec2 position, GLfloat width, GLfloat height, void (*on_press)(), void (*on_release)(), const char* text, GLfloat text_size, glm::vec3 color)
+Button::Button(glm::vec2 position, GLfloat width, GLfloat height, void (*on_press)(), void (*on_release)(), const wchar_t* text, GLfloat text_size, glm::vec3 color)
 {
     this->position   = position;
     this->width      = width;
@@ -668,7 +668,7 @@ Button::Button(glm::vec2 position, GLfloat width, GLfloat height, void (*on_pres
     glBindVertexArray(0);
 }
 
-Button::Button(GLfloat x, GLfloat y, GLfloat width, GLfloat height, void (*on_press)(), void (*on_release)(), const char* text, GLfloat text_size, GLfloat R, GLfloat G, GLfloat B)
+Button::Button(GLfloat x, GLfloat y, GLfloat width, GLfloat height, void (*on_press)(), void (*on_release)(), const wchar_t* text, GLfloat text_size, GLfloat R, GLfloat G, GLfloat B)
     : Button(glm::vec2(x, y), width, height, on_press, on_release, text, text_size, glm::vec3(R, G, B)) {}
 
 Button::~Button()

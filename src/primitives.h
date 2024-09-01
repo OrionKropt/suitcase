@@ -113,8 +113,8 @@ private:
 class Text : public Primitive
 {
 public:
-    Text(const char* text, glm::vec2 position, GLfloat size, GLfloat rotation = 0.0f, glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f));
-    Text(const char* text, GLfloat x, GLfloat y, GLfloat size, GLfloat rotation = 0.0f, GLfloat R = 0.0f, GLfloat G = 0.0f, GLfloat B = 0.0f);
+    Text(const wchar_t* text, glm::vec2 position, GLfloat size, GLfloat rotation = 0.0f, glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f));
+    Text(const wchar_t* text, GLfloat x, GLfloat y, GLfloat size, GLfloat rotation = 0.0f, GLfloat R = 0.0f, GLfloat G = 0.0f, GLfloat B = 0.0f);
     ~Text() override;
 
     auto draw() -> void override;
@@ -123,7 +123,7 @@ public:
     auto get_position() -> glm::vec2;
     auto set_position(glm::vec2 new_position) -> void;
     auto set_position(GLfloat new_x, GLfloat new_y) -> void;
-    auto set_text(const char* text) -> void;
+    auto set_text(const wchar_t* text) -> void;
     auto set_color(glm::vec3 new_color) -> void;
     auto set_color(GLfloat R, GLfloat G, GLfloat B) -> void;
     auto set_size(GLfloat new_size) -> void;
@@ -138,7 +138,7 @@ private:
     auto calculate_text_size() -> void;
 
     std::shared_ptr<Shader> shader;
-    std::string             text;
+    std::wstring            text;
     GLuint                  VAO;
     GLuint                  VBO;
     glm::vec2               position;           // NDC
@@ -156,11 +156,11 @@ class Button : public Primitive
 {
 public:
     Button(glm::vec2 position, GLfloat width, GLfloat height,
-           void (*on_press)(), void (*on_release)(), const char* text = nullptr,
+           void (*on_press)(), void (*on_release)(), const wchar_t* text = nullptr,
            GLfloat text_size = 0.4f, glm::vec3 color = glm::vec3(0.9f, 0.9f, 0.9f));
 
     Button(GLfloat x, GLfloat y, GLfloat width, GLfloat height,
-           void (*on_press)(), void (*on_release)(), const char* text = nullptr,
+           void (*on_press)(), void (*on_release)(), const wchar_t* text = nullptr,
            GLfloat text_size = 0.4f, GLfloat R = 0.9f, GLfloat G = 0.9f, GLfloat B = 0.9f);
 
     ~Button() override;
@@ -174,7 +174,7 @@ public:
 private:
     auto check_pressing() -> void;
 
-    // Fun fact: when lmb_* vars were static click detection
+    // Fun fact: when lmb_* vars were static, click detection
     // worked only for first created button. Why? IDK
     GLboolean               lmb_pressed;
     GLboolean               lmb_hold;

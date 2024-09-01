@@ -2,6 +2,7 @@
 
 #include <format>
 #include <sstream>
+#include <codecvt>
 #include <iostream>
 #include "error.h"
 
@@ -16,12 +17,18 @@ auto operator""_m(long double time) -> GLfloat { return (GLfloat) time * 60000; 
 auto operator""_h(GLuint64 time) -> GLfloat { return (GLfloat) time * 3600000; }
 auto operator""_h(long double time) -> GLfloat { return (GLfloat) time * 3600000; }
 
+auto to_wstring(const std::string& str) -> std::wstring
+{
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.from_bytes(str);
+}
+
 
 Graph::Curve::Curve(glm::vec3 color)
     : color(color) {}
 
 
-Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
+Graph::Graph(const wchar_t* abscissa, const wchar_t* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
              GLfloat hor_value_step, GLfloat ver_value_step, GLint hor_delims, GLint ver_delims,
              GLint hor_center, GLint ver_center, GLint hor_value_skip, GLint ver_value_skip,
              GLfloat hor_grid_step, GLfloat ver_grid_step, glm::vec2 position)
@@ -137,7 +144,7 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
         hor_rotation_deg = 55.0f;  // ! Hardcode
         hor_rotation_rad = hor_rotation_deg * M_PI / 180.0f;
 
-        std::string raw_text = get_raw_text(hor_values[i]);
+        std::wstring raw_text = get_raw_text(hor_values[i]);
         auto text = std::make_shared<Text>(raw_text.c_str(),
                                            glm::vec2(left_border + i * hor_grid_step,
                                                      down_border - ver_grid_step / 4),
@@ -152,7 +159,7 @@ Graph::Graph(const char* abscissa, const char* ordinate, AxisValue hor_zero_valu
     for (int i = 0; i < ver_delims; ++i)
     {
         // TODO: Refactor like horizontal text above?
-        std::string raw_text = get_raw_text(ver_values[i]);
+        std::wstring raw_text = get_raw_text(ver_values[i]);
         auto text = std::make_shared<Text>(raw_text.c_str(),
                                            glm::vec2(left_border - hor_grid_step / 2,
                                                      down_border + i * ver_grid_step),
@@ -491,9 +498,9 @@ auto Graph::initialize_axis_texts(std::vector<AxisValue>& values, AxisValue& zer
                }, zero_value);
 }
 
-auto Graph::get_raw_text(AxisValue variant) -> std::string
+auto Graph::get_raw_text(AxisValue variant) -> std::wstring
 {
-    return std::visit([](auto&& alternative) -> std::string
+    return std::visit([](auto&& alternative) -> std::wstring
             {
                 using Type = std::decay_t<decltype(alternative)>;
                 std::string str;
@@ -513,7 +520,7 @@ auto Graph::get_raw_text(AxisValue variant) -> std::string
                     ss << std::put_time(std::localtime(&value), "%H:%M:%S");
                     str = ss.str();
                 }
-                return str;
+                return to_wstring(str);
             }, variant);
 }
 
@@ -586,7 +593,7 @@ auto Graph::create_next_value(AxisValue& current, GLfloat step) -> AxisValue
 auto Graph::update_labels() -> void {
     for (int i = 0; i < hor_delims; ++i)
     {
-        std::string raw_text = get_raw_text(hor_values[i]);
+        std::wstring raw_text = get_raw_text(hor_values[i]);
         hor_texts[i]->set_text(raw_text.c_str());
         hor_texts[i]->set_position(glm::vec2(left_border + i * hor_grid_step,
                                              down_border - ver_grid_step / 4));

@@ -103,14 +103,32 @@ auto OpenGL::initialize() -> void
     }
 
     FT_Set_Pixel_Sizes(face, 0, 48);
+    FT_Select_Charmap(face, ft_encoding_unicode);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    // * Unicode symbols cannot be loaded with this approach. Using ASCII for now.
-    // std::string alphabet = " !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~ÀÁÂÃÄÅ¨ÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜİŞßàáâãäå¸æçèéêëìíîïğñòóôõö÷øùúûüışÿ";
-    for (unsigned char c = 0; c < 128; ++c) {
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            PRINT_ERROR("Glyph load failed", false, "Glyph: '{}'\n", c);
+    // Unicode blocks:
+    // [0x0000, 0x007F] - Basic Latin (ASCII), [0x0400, 0x04FF] - Cyrillic
+    for (wchar_t c = 0x0000; c <= 0x04FF; ++c)
+    {
+        // When done with ASCII, switch to cyrillic
+        if (c > 0x007F && c < 0x0400)
+        {
+            c = 0x0400;
+        }
+
+        FT_UInt glyph_index = FT_Get_Char_Index(face, c);
+
+        // glyph_index == 0 means that current font doesn't support given character
+        if (!glyph_index)
+        {
+            continue;
+        }
+
+        if (FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER))
+        {
+            // TODO: Maybe we need to add support for wchar_t and std::wstring instead of casting to ulong?
+            PRINT_ERROR("Glyph load failed", false, "Glyph: '{}'\n", (unsigned long) c);
             continue;
         }
 
@@ -167,7 +185,7 @@ auto OpenGL::get_shader(const char* name) -> std::shared_ptr<Shader>
     return shaders[name];
 }
 
-auto OpenGL::get_char(char c) -> std::shared_ptr<Character>
+auto OpenGL::get_char(wchar_t c) -> std::shared_ptr<Character>
 {
     return characters[c];
 }
