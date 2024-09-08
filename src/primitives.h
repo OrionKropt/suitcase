@@ -134,6 +134,8 @@ public:
     auto get_width_ndc() -> GLfloat;
     auto get_height_ndc() -> GLfloat;
 
+    static auto precalculate_text_size(const std::wstring& text, GLfloat size) -> GLfloat*;
+
 private:
     auto calculate_text_size() -> void;
 

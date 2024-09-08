@@ -592,22 +592,34 @@ auto Text::get_height_ndc() -> GLfloat
     return text_height_ndc;
 }
 
-auto Text::calculate_text_size() -> void
+auto Text::precalculate_text_size(const std::wstring& text, GLfloat size) -> GLfloat*
 {
-    text_width_px  = 0;
-    text_height_px = 0;
-    for (const auto& c : this->text)
+    GLfloat* result = new GLfloat[4];       // w_px, h_px, w_ndc, h_ndc
+    result[0] = 0;
+    result[1] = 0;
+    for (const auto& c : std::wstring(text))
     {
         auto ch = opengl.get_char(c);
-        text_width_px  += (ch->advance >> 6) * size;
+        result[0] += (ch->advance >> 6) * size;
         GLfloat tmp_height = ch->bearing.y * size;
-        if (tmp_height > text_height_px)
+        if (tmp_height > result[1])
         {
-            text_height_px = tmp_height;
+            result[1] = tmp_height;
         }
     }
-    text_width_ndc  = (2 * text_width_px) / opengl.get_window_width();
-    text_height_ndc = (2 * text_height_px) / opengl.get_window_height();
+    result[2]  = (2 * result[0]) / opengl.get_window_width();
+    result[3] = (2 * result[1]) / opengl.get_window_height();
+
+    return result;
+}
+
+auto Text::calculate_text_size() -> void
+{
+    GLfloat* sizes = precalculate_text_size(this->text, this->size);
+    text_width_px   = sizes[0];
+    text_height_px  = sizes[1];
+    text_width_ndc  = sizes[2];
+    text_height_ndc = sizes[3];
 }
 
 
