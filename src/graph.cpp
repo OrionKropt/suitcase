@@ -2,26 +2,11 @@
 
 #include <format>
 #include <sstream>
-#include <codecvt>
 #include <iostream>
+#include "utils.h"
 #include "error.h"
 
 extern OpenGL& opengl;
-
-auto operator""_s(GLuint64 time) -> GLfloat { return (GLfloat) time * 1000; }
-auto operator""_s(long double time) -> GLfloat { return (GLfloat) time * 1000; }
-
-auto operator""_m(GLuint64 time) -> GLfloat { return (GLfloat) time * 60000; }
-auto operator""_m(long double time) -> GLfloat { return (GLfloat) time * 60000; }
-
-auto operator""_h(GLuint64 time) -> GLfloat { return (GLfloat) time * 3600000; }
-auto operator""_h(long double time) -> GLfloat { return (GLfloat) time * 3600000; }
-
-auto to_wstring(const std::string& str) -> std::wstring
-{
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(str);
-}
 
 
 Graph::Curve::Curve(glm::vec3 color)

@@ -9,18 +9,6 @@
 #include <glm/glm.hpp>
 #include "primitives.h"
 
-// Converts given time in seconds/minutes/hours to milliseconds cause Graph steps use ms
-auto operator""_s(GLuint64 time) -> GLfloat;
-auto operator""_s(long double time) -> GLfloat;
-
-auto operator""_m(GLuint64 time) -> GLfloat;
-auto operator""_m(long double time) -> GLfloat;
-
-auto operator""_h(GLuint64 time) -> GLfloat;
-auto operator""_h(long double time) -> GLfloat;
-
-auto to_wstring(const std::string& str) -> std::wstring;
-
 class Graph
 {
 public:
