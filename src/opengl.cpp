@@ -99,7 +99,7 @@ auto OpenGL::initialize() -> void
     if (FT_New_Face(ft, font_path, 0, &face))
     {
         glfwTerminate();
-        PRINT_ERROR("Font load failed", true, "Path to font: '{}'", font_path);
+        PRINT_ERROR("Font load failed", true, "Path to font: '{}'\n", font_path);
     }
 
     FT_Set_Pixel_Sizes(face, 0, 48);
@@ -127,7 +127,6 @@ auto OpenGL::initialize() -> void
 
         if (FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER))
         {
-            // TODO: Maybe we need to add support for wchar_t and std::wstring instead of casting to ulong?
             PRINT_ERROR("Glyph load failed", false, "Glyph: '{}'\n", (unsigned long) c);
             continue;
         }
