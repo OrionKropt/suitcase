@@ -12,6 +12,54 @@ extern OpenGL& opengl;
 Graph::Curve::Curve(glm::vec3 color)
     : color(color) {}
 
+auto Graph::Curve::draw() -> void
+{
+    for (const auto& point : points)
+    {
+        point->draw();
+    }
+    for (const auto& segment : segments)
+    {
+        segment->draw();
+    }
+}
+
+
+auto Graph::Caption::draw() -> void
+{
+    point->draw();
+    text->draw();
+}
+
+auto Graph::Caption::move(GLfloat dx, GLfloat dy) -> void
+{
+    point->move(dx, dy);
+    text->move(dx, dy);
+}
+
+
+Graph::CaptionContainer::CaptionContainer(GLfloat width, GLfloat height, glm::vec2 position, GLfloat indent_x, GLfloat indent_y)
+    : width(width), height(height), position(position), indent_x(indent_x), indent_y(indent_y),
+    current_height(0), last_height(0), borders_enabled(false) {}
+
+auto Graph::CaptionContainer::draw() -> void
+{
+    for (const auto& captions_vector : captions)
+    {
+        for (const auto& caption : captions_vector)
+        {
+            caption->draw();
+        }
+    }
+    if (borders_enabled)
+    {
+        for (const auto& border : borders)
+        {
+            border->draw();
+        }
+    }
+}
+
 
 Graph::Graph(const wchar_t* abscissa, const wchar_t* ordinate, AxisValue hor_zero_value, AxisValue ver_zero_value,
              GLfloat hor_value_step, GLfloat ver_value_step, GLint hor_delims, GLint ver_delims,
@@ -175,59 +223,208 @@ auto Graph::draw() -> void
 {
     // * Render order to avoid incorrect overlaying:
     // * bg_lines -> main_lines -> arrows -> segments -> points -> text -> labels
-    if (enabled) {
-        for (const auto& bg_line: bg_lines_hor) {
+    if (enabled)
+    {
+        for (const auto& bg_line: bg_lines_hor)
+        {
             bg_line->draw();
         }
-        for (const auto& bg_line: bg_lines_ver) {
+        for (const auto& bg_line: bg_lines_ver)
+        {
             bg_line->draw();
         }
-        for (const auto& main_line: main_lines) {
+        for (const auto& main_line: main_lines)
+        {
             main_line->draw();
         }
-        for (const auto& arrow: arrows) {
+        for (const auto& arrow: arrows)
+        {
             arrow->draw();
         }
+        // TODO: add draw() method to Curve class
         for (const auto& [name, curve] : curves)
         {
-            for (const auto& segment : curve->segments) {
-                segment->draw();
-            }
-            for (const auto& point : curve->points) {
-                point->draw();
-            }
+            curve->draw();
         }
-        for (const auto& hor_text: hor_texts) {
+        for (const auto& hor_text: hor_texts)
+        {
             hor_text->draw();
         }
-        for (const auto& ver_text: ver_texts) {
+        for (const auto& ver_text: ver_texts)
+        {
             ver_text->draw();
         }
-        for (const auto& label: axis_labels) {
+        for (const auto& label: axis_labels)
+        {
             label->draw();
+        }
+        for (const auto& [name, container] : caption_containers)
+        {
+            container->draw();
         }
     }
 }
 
-auto Graph::create_curve(const char* name, glm::vec3 color) -> void
+auto Graph::create_curve(const wchar_t* name, glm::vec3 color) -> void
 {
     if (curves.contains(name))
     {
-        PRINT_ERROR("Curve with given name already exists in this Graph.", true, "Name: {}\n", name);
+        PRINT_ERROR("Curve with given name already exists in this Graph.", true);
     }
     curves.emplace(name, std::make_shared<Curve>(color));
 }
 
-auto Graph::create_curve(const char* name, GLfloat R, GLfloat G, GLfloat B) -> void
+auto Graph::create_curve(const wchar_t* name, GLfloat R, GLfloat G, GLfloat B) -> void
 {
     create_curve(name, glm::vec3(R, G, B));
 }
 
-auto Graph::add_point(const char* curve_name, AxisValue x, AxisValue y) -> void
+auto Graph::create_caption_container(const wchar_t* name, GLfloat width, GLfloat height, glm::vec2 container_position, GLfloat indent_x, GLfloat indent_y) -> void
+{
+    auto [it, success] = caption_containers.emplace(name, std::make_shared<CaptionContainer>(width, height, container_position, indent_x, indent_y));
+    if (!success)
+    {
+        PRINT_ERROR("Can't create new CaptionContainer. Given name already exists.", true);
+    }
+
+    caption_containers.at(name)->captions.emplace_back();
+    caption_containers.at(name)->sizes_width.push_back(0);
+
+    // CaptionContainer borders: left, right, down, up. Mostly for size testing
+    GLfloat cx = container_position.x;
+    GLfloat cy = container_position.y;
+    caption_containers.at(name)->borders.emplace_back(std::make_shared<Line>(cx - width, cy - height - 0.005f,
+                                                                             cx - width, cy + height + 0.005f,
+                                                                            0.01f, 0.0f, 0.0f, 0.0f));
+    caption_containers.at(name)->borders.emplace_back(std::make_shared<Line>(cx + width, cy + height + 0.005f,
+                                                                            cx + width, cy - height - 0.005f,
+                                                                            0.01f, 0.0f, 0.0f, 0.0f));
+    caption_containers.at(name)->borders.emplace_back(std::make_shared<Line>(cx - width - 0.005f, cy - height,
+                                                                            cx + width + 0.005f, cy - height,
+                                                                            0.01f, 0.0f, 0.0f, 0.0f));
+    caption_containers.at(name)->borders.emplace_back(std::make_shared<Line>(cx + width + 0.005f, cy + height,
+                                                                            cx - width - 0.005f, cy + height,
+                                                                            0.01f, 0.0f, 0.0f, 0.0f));
+}
+
+auto Graph::create_caption_container(const wchar_t* name, GLfloat width, GLfloat height, GLfloat x, GLfloat y, GLfloat indent_x, GLfloat indent_y) -> void
+{
+    create_caption_container(name, width, height, glm::vec2(x, y));
+}
+
+auto Graph::create_caption(const wchar_t* container, const wchar_t* curve, GLboolean force_new_line,
+                           const wchar_t* name, GLfloat point_size, GLfloat text_size) -> void
+{
+    // Check if CaptionContainer and Curve exists
+    if (!caption_containers.contains(container))
+    {
+        PRINT_ERROR("No CaptionContainer with given name exists.", true);
+    }
+    if (!curves.contains(curve))
+    {
+        PRINT_ERROR("No Curve with given name exists.", true);
+    }
+    const auto this_container = caption_containers.at(container);
+    const auto this_curve = curves.at(curve);
+
+    // Precalculate Text and Caption sizes
+    GLfloat* text_params = Text::precalculate_text_size(name ? name : curve, text_size);
+    GLfloat text_width_ndc = text_params[2];
+    GLfloat text_height_ndc = text_params[3];
+
+    GLfloat caption_width = point_size * 3 + text_width_ndc;
+    GLfloat caption_height = std::max(point_size * 2, text_height_ndc);
+
+    // Height check if we need a new line
+    GLboolean need_indent_x = !(this_container->captions.end()-1)->empty();
+    GLfloat new_width = *(this_container->sizes_width.end()-1) + caption_width + (need_indent_x ? this_container->indent_x : 0);
+    GLboolean fits = new_width < this_container->width * 2;
+
+    GLboolean need_indent_y = false;
+    if (force_new_line || !fits)
+    {
+        need_indent_y = true;
+
+        GLfloat new_height = this_container->current_height + this_container->indent_y + text_height_ndc;
+        if (new_height >= this_container->height * 2)
+        {
+            PRINT_ERROR("CaptionContainer doesn't have enough height for new Caption.", false, "Required {:.3f}, but only {:.3f} available.\n", new_height, this_container->height * 2);
+            return;
+        }
+
+        new_width -= *(this_container->sizes_width.end()-1) + (need_indent_x ? this_container->indent_x : 0);
+        need_indent_x = false;
+
+        // Move existing Captions up
+        for (const auto& captions_vector : this_container->captions)
+        {
+            for (const auto& caption: captions_vector)
+            {
+                caption->move(0.0f, (this_container->indent_y + caption_height) / 2);
+            }
+        }
+
+        this_container->captions.emplace_back();
+        this_container->sizes_width.push_back(0);
+        this_container->last_height = this_container->current_height;
+    }
+
+    // Width check
+    fits = new_width < this_container->width * 2;
+    if (!fits)
+    {
+        PRINT_ERROR("CaptionContainer doesn't have enough width for new Caption.", false, "Required {:.3f}, but only {:.3f} available.\n", new_width, this_container->width * 2);
+        return;
+    }
+
+    // Move existing Captions left
+    for (const auto& caption : *(this_container->captions.end()-1))
+    {
+        caption->move(-(this_container->indent_x + caption_width) / 2, 0.0f);
+    }
+
+    // Create Point, Text and Caption
+    const auto point = std::make_shared<Point>(this_container->position, point_size, this_curve->color);
+    const auto text = std::make_shared<Text>(name ? name : curve, this_container->position, text_size);
+    text->move(-text->get_width_ndc() / 2, -text->get_height_ndc() / 2);
+
+    point->move(-caption_width / 2 + point_size, 0.0f);
+    text->move(caption_width / 2 - text->get_width_ndc() / 2, 0.0f);
+
+    const auto caption = std::make_shared<Caption>();
+    caption->point = point;
+    caption->text = text;
+
+    // Move new Caption to its position
+    GLboolean not_first_line_and_pos = this_container->captions.size() > 1 && !(this_container->captions.end() - 1)->empty();
+    GLfloat dx = ((need_indent_x ? this_container->indent_x : 0) + *(this_container->sizes_width.end()-1)) / 2;
+    GLfloat dy = (need_indent_y || not_first_line_and_pos ? -(this_container->indent_y + this_container->last_height) / 2 : 0);
+    caption->move(dx, dy);
+
+    // Updating sizes
+    *(this_container->sizes_width.end()-1) += (need_indent_x ? this_container->indent_x : 0) + caption_width;
+    if (!need_indent_x)
+    {
+        this_container->current_height += (need_indent_y ? this_container->indent_y : 0) + caption_height;
+    }
+
+    (this_container->captions.end()-1)->push_back(caption);
+}
+
+auto Graph::set_container_borders_enabled(const wchar_t* container, bool state) -> void
+{
+    if (!caption_containers.contains(container))
+    {
+        PRINT_ERROR("No CaptionContainer with given name exists.", true);
+    }
+    caption_containers.at(container)->borders_enabled = state;
+}
+
+auto Graph::add_point(const wchar_t* curve_name, AxisValue x, AxisValue y) -> void
 {
     if (!curves.contains(curve_name))
     {
-        PRINT_ERROR("No Curve with given name exists.", true, "Name: {}\n", curve_name);
+        PRINT_ERROR("No Curve with given name exists.", true);
     }
     auto this_curve = curves.at(curve_name);
 
@@ -319,11 +516,11 @@ auto Graph::add_point(const char* curve_name, AxisValue x, AxisValue y) -> void
     }
 }
 
-auto Graph::add_segment(const char* curve_name, glm::vec2 start, glm::vec2 end) -> void
+auto Graph::add_segment(const wchar_t* curve_name, glm::vec2 start, glm::vec2 end) -> void
 {
     if (!curves.contains(curve_name))
     {
-        PRINT_ERROR("No Curve with given name exists.", true, "Name: {}\n", curve_name);
+        PRINT_ERROR("No Curve with given name exists.", true);
     }
     auto this_curve = curves.at(curve_name);
 
@@ -413,7 +610,6 @@ auto Graph::is_enabled() const -> bool
 {
     return enabled;
 }
-
 
 auto Graph::set_axis_color(glm::vec3 new_color) -> void
 {
@@ -575,7 +771,8 @@ auto Graph::create_next_value(AxisValue& current, GLfloat step) -> AxisValue
             }, current);
 }
 
-auto Graph::update_labels() -> void {
+auto Graph::update_labels() -> void
+{
     for (int i = 0; i < hor_delims; ++i)
     {
         std::wstring raw_text = get_raw_text(hor_values[i]);

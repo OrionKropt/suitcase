@@ -24,10 +24,17 @@ public:
     ~Graph();
 
     auto draw() -> void;
-    auto create_curve(const char* name, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f)) -> void;
-    auto create_curve(const char* name, GLfloat R = 1.0f, GLfloat G = 0.0f, GLfloat B = 0.0f) -> void;
-    auto add_point(const char* curve_name, AxisValue x, AxisValue y) -> void;
-    auto add_segment(const char* curve_name, glm::vec2 start, glm::vec2 end) -> void;
+    auto create_curve(const wchar_t* name, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f)) -> void;
+    auto create_curve(const wchar_t* name, GLfloat R = 1.0f, GLfloat G = 0.0f, GLfloat B = 0.0f) -> void;
+    auto create_caption_container(const wchar_t* name, GLfloat width, GLfloat height, glm::vec2 container_position,
+                                  GLfloat indent_x = 0.035f, GLfloat indent_y = 0.035f) -> void;
+    auto create_caption_container(const wchar_t* name, GLfloat width, GLfloat height, GLfloat x, GLfloat y,
+                                  GLfloat indent_x = 0.035f, GLfloat indent_y = 0.035f) -> void;
+    auto create_caption(const wchar_t* container, const wchar_t* curve, GLboolean force_new_line = false,
+                        const wchar_t* name = nullptr, GLfloat point_size = 0.0175f, GLfloat text_size = 0.5f) -> void;
+    auto set_container_borders_enabled(const wchar_t* container, bool state) -> void;
+    auto add_point(const wchar_t* curve_name, AxisValue x, AxisValue y) -> void;
+    auto add_segment(const wchar_t* curve_name, glm::vec2 start, glm::vec2 end) -> void;
     auto move(glm::vec2 delta) -> void;
     auto move(GLfloat dx, GLfloat dy) -> void;
     auto set_position(glm::vec2 new_position) -> void;
@@ -48,36 +55,36 @@ private:
     auto create_next_value(AxisValue& current, GLfloat step) -> AxisValue;
     auto update_labels() -> void;
 
-    bool        enabled;                // Should Graph be rendered
+    bool            enabled;                // Should Graph be rendered
 
-    std::wstring abscissa;               // Labels for axis'
-    std::wstring ordinate;
-    AxisValue   hor_zero_value;         // Values at (0, 0) point
-    AxisValue   ver_zero_value;
-    GLfloat     hor_value_step;         // Steps between values: value[n] = value[n-1] + step
-    GLfloat     ver_value_step;
-    GLint       hor_delims;             // Amount of hor/ver lines in grid
-    GLint       ver_delims;
-    GLfloat     hor_grid_step;          // NDC
-    GLfloat     ver_grid_step;          // NDC
-    GLint       hor_center;
-    GLint       ver_center;
-    glm::vec2   position;               // NDC
+    std::wstring    abscissa;               // Labels for axis'
+    std::wstring    ordinate;
+    AxisValue       hor_zero_value;         // Values at (0, 0) point
+    AxisValue       ver_zero_value;
+    GLfloat         hor_value_step;         // Steps between values: value[n] = value[n-1] + step
+    GLfloat         ver_value_step;
+    GLint           hor_delims;             // Amount of hor/ver lines in grid
+    GLint           ver_delims;
+    GLfloat         hor_grid_step;          // NDC
+    GLfloat         ver_grid_step;          // NDC
+    GLint           hor_center;
+    GLint           ver_center;
+    glm::vec2       position;               // NDC
 
-    GLfloat     left_border;
-    GLfloat     right_border;
-    GLfloat     up_border;
-    GLfloat     down_border;
-    glm::vec3   bg_lines_color      = glm::vec3(0.5f, 0.5f, 0.5f);
-    glm::vec3   axis_color          = glm::vec3(0.0f, 0.0f, 0.0f);
-    GLfloat     bg_lines_width      = 0.0035f;
-    GLfloat     main_lines_width    = 0.01f;
-    GLfloat     hor_min;
-    GLfloat     hor_max;
-    GLfloat     ver_min;
-    GLfloat     ver_max;
-    GLfloat     hor_rotation_deg;
-    GLfloat     hor_rotation_rad;
+    GLfloat         left_border;
+    GLfloat         right_border;
+    GLfloat         up_border;
+    GLfloat         down_border;
+    glm::vec3       bg_lines_color   = glm::vec3(0.5f, 0.5f, 0.5f);
+    glm::vec3       axis_color       = glm::vec3(0.0f, 0.0f, 0.0f);
+    GLfloat         bg_lines_width   = 0.0035f;
+    GLfloat         main_lines_width = 0.01f;
+    GLfloat         hor_min;
+    GLfloat         hor_max;
+    GLfloat         ver_min;
+    GLfloat         ver_max;
+    GLfloat         hor_rotation_deg;
+    GLfloat         hor_rotation_rad;
 
     std::vector<AxisValue> hor_values;
     std::vector<AxisValue> ver_values;
@@ -86,12 +93,44 @@ private:
     {
         explicit Curve(glm::vec3 color);
 
-        glm::vec3                           color{};
+        auto draw() -> void;
+
+        glm::vec3                           color;
         std::vector<std::shared_ptr<Point>> points;
         std::vector<std::shared_ptr<Line>>  segments;
     };
 
-    std::unordered_map<std::string, std::shared_ptr<Curve>> curves;     // Curve name -> curve
+    std::unordered_map<std::wstring, std::shared_ptr<Curve>> curves;     // Curve name -> curve
+
+    struct Caption
+    {
+        auto draw() -> void;
+        auto move(GLfloat dx, GLfloat dy) -> void;
+
+        std::shared_ptr<Point>  point;
+        std::shared_ptr<Text>   text;
+    };
+
+    struct CaptionContainer
+    {
+        CaptionContainer(GLfloat width, GLfloat height, glm::vec2 position, GLfloat indent_x, GLfloat indent_y);
+
+        auto draw() -> void;
+
+        GLfloat                                             width;                  // NDC
+        GLfloat                                             height;                 // NDC
+        glm::vec2                                           position;
+        std::vector<std::vector<std::shared_ptr<Caption>>>  captions;
+        std::vector<GLfloat>                                sizes_width;
+        GLfloat                                             indent_x;               // NDC
+        GLfloat                                             indent_y;               // NDC
+        GLfloat                                             current_height;         // NDC
+        GLfloat                                             last_height;
+        std::vector<std::shared_ptr<Line>>                  borders;
+        GLboolean                                           borders_enabled;
+    };
+
+    std::unordered_map<std::wstring, std::shared_ptr<CaptionContainer>> caption_containers;
 
     std::vector<std::shared_ptr<Line>>      bg_lines_hor;
     std::vector<std::shared_ptr<Line>>      bg_lines_ver;
