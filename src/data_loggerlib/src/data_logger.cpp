@@ -32,33 +32,32 @@ auto DataLogger::init() -> void
 	{
 		PRINT_ERROR("Failed to create a context Modbus", true)
 	}
-	else
-	{
-		#ifdef DEBUG
-		std::cout << "Modbus context created!\n";
-		#endif // DEBUG
-	}
+	#ifdef DEBUG
+	std::cout << "Modbus context created!\n";
+	#endif // DEBUG
 
 	// Setting the device address 
-	modbus_set_slave(ctx, setup.slave_id);
+	if (modbus_set_slave(ctx, setup.slave_id) == -1)
+	{
+		modbus_free(ctx);
+		PRINT_ERROR("Failed to set the slave", true);
+	}
 
-	// Setting to RS-485
-	modbus_rtu_set_serial_mode(ctx, MODBUS_RTU_RS485);
-
-	// Connecting to the device 
+#ifdef DEBUG
+	std::cout << "Modbus slave set\n";
+#endif // DEBUG
+ 
 	if (modbus_connect(ctx) == -1)
 	{
 		modbus_free(ctx);
 		PRINT_ERROR("Failed to connect to the device", true)
 	}
-	else
-	{
-		#ifdef DEBUG
-		std::cout << "Successful connection!\n";
-		#endif // DEBUG
-	}
+	#ifdef DEBUG
+	std::cout << "Successful connection!\n";
+	#endif // DEBUG
 
-	if (-1 == modbus_read_registers(ctx, SCALE_FACTOR_I_INT, 4, buf))
+
+	if (modbus_read_registers(ctx, SCALE_FACTOR_I_INT, 4, buf) == -1)
 	{
 		PRINT_ERROR("Register read failed", 1, "Register: {}", SCALE_FACTOR_I_INT)
 	}
@@ -70,7 +69,7 @@ auto DataLogger::init() -> void
 
 	regs_init();
 
-	is_float = true;
+	is_float = false;
 }
 
 auto DataLogger::read_data_from_device() -> int
@@ -85,7 +84,6 @@ auto DataLogger::read_data_from_device() -> int
 		return -1;
 	}
 	
-
 	res = read_power_from_device(apparent_power);
 	if (res == -1)
 	{
@@ -103,7 +101,6 @@ auto DataLogger::read_data_from_device() -> int
 #endif // DEBUG
 		return -1;
 	}
-
 
 	res = read_current_from_device();
 	if (res)
@@ -271,9 +268,6 @@ auto DataLogger::read_power_from_device(Power& power) -> int
 		}
 		power.data[power.int_regs.total][0] = buf[0];
 
-
-
-
 		// min max
 		if (-1 == modbus_read_registers(ctx, power.int_regs.min, 1, buf))
 		{
@@ -350,7 +344,6 @@ auto DataLogger::read_power_from_device(Power& power) -> int
 		memcpy_s(power.demand.data[power.demand.float_regs.peak], sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
 		
 		// --------FLOAT---------
-
 	}
 	
 #ifdef DEBUG
@@ -465,7 +458,6 @@ auto DataLogger::read_current_from_device() -> int
 		memcpy_s(current.A_demand_peak, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
 		memcpy_s(current.B_demand_peak, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
 		memcpy_s(current.C_demand_peak, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
-
 
 		// max min
 		if (-1 == modbus_read_registers(ctx, CURRENT_A_MIN_FLOAT, 6, buf))
@@ -627,7 +619,7 @@ auto DataLogger::read_voltage_from_device() -> int
 			PRINT_ERROR("Register read failed", false, "Register: {}", VOLTAGE_AB_MAX_FLOAT)
 			return -1;
 		}
-		memcpy_s(voltage.max.CN, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
+		memcpy_s(voltage.max.AB, sizeof(uint16_t) * 2, buf, sizeof(uint16_t) * 2);
 		memcpy_s(voltage.max.BC, sizeof(uint16_t) * 2, buf + 2, sizeof(uint16_t) * 2);
 		memcpy_s(voltage.max.CA, sizeof(uint16_t) * 2, buf + 4, sizeof(uint16_t) * 2);
 
@@ -668,7 +660,6 @@ auto DataLogger::print_setup() -> void const
 	std::cout << "STOP BITS: " << setup.stop_bits << '\n';
 	std::cout << "Device ID: " << setup.slave_id << '\n';
 #endif // DEBUG
-
 }
 
 
@@ -678,16 +669,15 @@ auto DataLogger::write_power_to_file(Power& power) -> void const
 	float min = 0, max = 0, total = 0;
 	int pow = setup.scale_w[0];
 	int scale = fast_pow(10, pow);
-
 	
 	if (!is_float)
 	{
-		A = (float) real_power.data[power.int_regs.A][0] / scale;
-		B = (float) real_power.data[power.int_regs.B][0] / scale;
-		C = (float) real_power.data[power.int_regs.C][0] / scale;
-		total = (float) power.data[power.int_regs.total][0] / scale;
-		min = power.data[power.int_regs.min][0];
-		max = power.data[power.int_regs.max][0];
+		A = (float) real_power.data[power.int_regs.A][0] * scale;
+		B = (float) real_power.data[power.int_regs.B][0] * scale;
+		C = (float) real_power.data[power.int_regs.C][0] * scale;
+		total = (float) power.data[power.int_regs.total][0] * scale;
+		min = (float) power.data[power.int_regs.min][0] * scale;
+		max = (float) power.data[power.int_regs.max][0] * scale;
 	}
 	else
 	{
@@ -740,27 +730,27 @@ auto DataLogger::write_current_to_file() -> void const
 	int scale = fast_pow(10, pow);
 	if (!is_float)
 	{
-		phase_3 = (float)current.phase_3[0] / scale;
+		phase_3 = (float)current.phase_3[0] * scale;
 
-		A = (float) current.A[0] / scale;
-		B = (float) current.B[0] / scale;
-		C = (float) current.C[0] / scale;
-		N = (float) current.N[0] / scale;
+		A = (float) current.A[0] * scale;
+		B = (float) current.B[0] * scale;
+		C = (float) current.C[0] * scale;
+		N = (float) current.N[0] * scale;
 
-		A_demand = (float) current.A_demand[0] / scale;
-		B_demand = (float) current.B_demand[0] / scale;
-		C_demand = (float) current.C_demand[0] / scale;
+		A_demand = (float) current.A_demand[0] * scale;
+		B_demand = (float) current.B_demand[0] * scale;
+		C_demand = (float) current.C_demand[0] * scale;
 
-		A_demand_peak = (float) current.A_demand_peak[0] / scale;
-		B_demand_peak = (float) current.B_demand_peak[0] / scale;
-		C_demand_peak = (float) current.C_demand_peak[0] / scale;
+		A_demand_peak = (float) current.A_demand_peak[0] * scale;
+		B_demand_peak = (float) current.B_demand_peak[0] * scale;
+		C_demand_peak = (float) current.C_demand_peak[0] * scale;
 
-		A_max = (float) current.A_max[0] / scale;
-		A_min = (float) current.A_min[0] / scale;
-		B_max = (float) current.B_max[0] / scale;
-		B_min = (float) current.B_min[0] / scale;
-		C_max = (float) current.C_max[0] / scale;
-		C_min = (float) current.C_min[0] / scale;
+		A_max = (float) current.A_max[0] * scale;
+		A_min = (float) current.A_min[0] * scale;
+		B_max = (float) current.B_max[0] * scale;
+		B_min = (float) current.B_min[0] * scale;
+		C_max = (float) current.C_max[0] * scale;
+		C_min = (float) current.C_min[0] * scale;
 	}
 	else
 	{
@@ -814,30 +804,30 @@ auto DataLogger::write_voltage_to_file() -> void const
 	float AN_min = 0, BN_min = 0, CN_min = 0;
 
 	int pow = setup.scale_v[0];
-	int scale = fast_pow(10, pow);
+	float scale = fast_pow(10, pow);
 
 	if (!is_float)
 	{
-		LL_3P_average = (float) voltage.LL_3P_average[0] / scale;
-		LN_3P_average = (float) voltage.LN_3P_average[0] / scale;
-		AB = (float) voltage.AB[0] / scale;
-		BC = (float) voltage.BC[0] / scale;
-		CA = (float) voltage.CA[0] / scale;
-		AN = (float) voltage.AN[0] / scale;
-		BN = (float) voltage.BN[0] / scale;
-		CN = (float) voltage.CN[0] / scale;
-		AB_max = (float) voltage.max.AB[0];
-		BC_max = (float) voltage.max.BC[0];
-		CA_max = (float) voltage.max.CA[0];
-		AN_max = (float) voltage.max.AN[0];
-		BN_max = (float) voltage.max.BN[0];
-		CN_max = (float) voltage.max.CN[0];
-		AB_min = (float)voltage.min.AB[0];
-		BC_min = (float)voltage.min.BC[0];
-		CA_min = (float)voltage.min.CA[0];
-		AN_min = (float)voltage.min.AN[0];
-		BN_min = (float)voltage.min.BN[0];
-		CN_min = (float)voltage.min.CN[0];
+		LL_3P_average = (float) voltage.LL_3P_average[0] * scale;
+		LN_3P_average = (float) voltage.LN_3P_average[0] * scale;
+		AB = (float) voltage.AB[0] * scale;
+		BC = (float) voltage.BC[0] * scale;
+		CA = (float) voltage.CA[0] * scale;
+		AN = (float) voltage.AN[0] * scale;
+		BN = (float) voltage.BN[0] * scale;
+		CN = (float) voltage.CN[0] * scale;
+		AB_max = (float) voltage.max.AB[0] * scale;
+		BC_max = (float) voltage.max.BC[0] * scale;
+		CA_max = (float) voltage.max.CA[0] * scale;
+		AN_max = (float) voltage.max.AN[0] * scale;
+		BN_max = (float) voltage.max.BN[0] * scale;
+		CN_max = (float) voltage.max.CN[0] * scale;
+		AB_min = (float) voltage.min.AB[0] * scale;
+		BC_min = (float) voltage.min.BC[0] * scale;
+		CA_min = (float) voltage.min.CA[0] * scale;
+		AN_min = (float) voltage.min.AN[0] * scale;
+		BN_min = (float) voltage.min.BN[0] * scale;
+		CN_min = (float) voltage.min.CN[0] * scale;
 	}
 	else
 	{
@@ -881,18 +871,24 @@ auto DataLogger::write_voltage_to_file() -> void const
 
 
 
-auto DataLogger::fast_pow(const int& n, const int& m) -> int
+auto DataLogger::fast_pow(float n, int deg) -> float
 {
-	if (m == 0) return 1;
+	if (deg == 0) return 1;
 	
-	if (m % 2 == 0)
+	if (deg < 0)
 	{
-		int a = fast_pow(n, m / 2);
+		n = 1 / n;
+		deg = -deg;
+	}
+
+	if (deg % 2 == 0)
+	{
+		float a = fast_pow(n, deg / 2);
 		return a * a;
 	}
 	else
 	{
-		int a = fast_pow(n, (m - 1) / 2);
+		float a = fast_pow(n, (deg - 1) / 2);
 		return a * a * n;
 	}
 }
