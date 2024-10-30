@@ -38,7 +38,7 @@ private:
 	auto write_current_to_file() -> void const;
 	auto write_voltage_to_file() -> void const;
 
-	auto fast_pow(const int& n, const int& m) -> int;
+	auto fast_pow(float n, int deg) -> float;
 	Setup setup;
 	Power real_power;
 	Power apparent_power;

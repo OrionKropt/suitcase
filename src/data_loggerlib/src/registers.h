@@ -34,7 +34,7 @@
 
 
 
-//-----------------VOLTAG------------------\\
+//-----------------VOLTAGE------------------\\
 
 #define VOLTAGE_LL_3P_AVERAGE_FLOAT 1014 - 1               // Volt 
 #define VOLTAGE_LN_3P_AVERAGE_FLOAT 1016 - 1               // Volt 
