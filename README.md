@@ -13,10 +13,10 @@ This program reads data from the PM710 Schneider electric device via RS-485 inte
     - [x] Real
     - [x] Demand 
   - [x] Voltage
-  - [ ] Energy
-    - [ ] Real
-    - [ ] Apparent
-    - [ ] Reactive
+  - [x] Energy
+    - [x] Real
+    - [x] Apparent
+    - [x] Reactive
   - [ ] THD (Total Harmonic Distortion)
   - [ ] Time
 - [ ] **Logging**
