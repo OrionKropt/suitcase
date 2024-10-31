@@ -9,8 +9,11 @@ project(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# To disable the min and max macros defined in the minwindef.h file (Windows API)
+add_definitions(-DNOMINMAX)
+
 # DataLoggerlib
-add_subdirectory("src/data_loggerlib")
+add_subdirectory("src/data-loggerlib")
 
 # Collect source files
 file (GLOB_RECURSE _SOURCES 	CONFIGURE_DEPENDS "src/*.cpp")
@@ -20,7 +23,7 @@ file (GLOB_RECURSE _HEADERS_HPP CONFIGURE_DEPENDS "src/*.hpp")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/libopengl/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/libfreetype/include")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/data_loggerlib/include")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/data-loggerlib/include")
 
 
 add_executable(${PROJECT_NAME} 	${_SOURCES}
@@ -44,23 +47,23 @@ list(REMOVE_DUPLICATES _INCLUDE_DIRS)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${_INCLUDE_DIRS})
 
-set(MODBUS_LIB   "${CMAKE_CURRENT_LIST_DIR}/src/data_loggerlib/libmodbus/lib/ModBus.lib")
+set(MODBUS_LIB   "${CMAKE_CURRENT_LIST_DIR}/src/data-loggerlib/libmodbus/lib/ModBus.lib")
 set(FREETYPE_LIB "${CMAKE_CURRENT_LIST_DIR}/src/libfreetype/lib/freetyped.lib")
-set(DATA_LOGGER_LIB "${CMAKE_CURRENT_LIST_DIR}/src/data_loggerlib/lib/data_loggerlib.lib")
+set(DATA_LOGGER_LIB "${CMAKE_CURRENT_LIST_DIR}/src/data-loggerlib/lib/data-loggerlib.lib")
 
 # Choose OpenGL lib depending on compiler
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libfreetype/lib/freetyped.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/data_loggerlib/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/data-loggerlib/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 	set(OPENGL_LIB "${CMAKE_CURRENT_LIST_DIR}/src/libopengl/lib/libglfw3.a")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	file(MAKE_DIRECTORY "./build/Debug")
 	file(MAKE_DIRECTORY "./build/Release")
 	set(OPENGL_LIB "${CMAKE_CURRENT_LIST_DIR}/src/libopengl/lib/glfw3_mt.lib")
 	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libfreetype/lib/freetyped.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
-	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/data_loggerlib/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
+	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/data-loggerlib/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
 	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/libfreetype/lib/freetyped.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Release)
-	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/data_loggerlib/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Release)
+	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/src/data-loggerlib/libmodbus/dll/ModBus.dll" DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Release)
 else ()
 	message(FATAL_ERROR "Unsupported compiler")
 endif()
