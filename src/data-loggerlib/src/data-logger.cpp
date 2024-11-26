@@ -101,6 +101,15 @@ auto DataLogger::read_data_from_device() -> int
 		return -1;
 	}
 
+	res = read_power_factor_from_device();
+	if (res)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("Error reading data", false)
+#endif // DEBUG
+		return -1;
+	}
+
 	res = read_current_from_device();
 	if (res)
 	{
@@ -145,6 +154,7 @@ auto DataLogger::write_data_to_file() -> void const
 	write_power_to_file(real_power);
 	write_power_to_file(apparent_power);
 	write_power_to_file(reactive_power);
+	write_power_factor_to_file();
 
 #ifdef DEBUG
 	std::cout << "\nDEMAND POWER\n";
@@ -690,6 +700,69 @@ auto DataLogger::read_energy_from_device() -> int
 	return 0;
 }
 
+auto DataLogger::read_power_factor_from_device() -> int
+{
+	if (!is_float)
+	{
+		// ---------INT----------
+
+		if (modbus_read_registers(ctx, POWER_FACTOR_TOTAL_INT, 1, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", POWER_FACTOR_TOTAL_INT)
+			return -1;
+		}
+		power_factor.total = buf[0] * setup.scale_pf;
+
+		if (modbus_read_registers(ctx, POWER_FACTOR_TOTAL_MIN_INT, 1, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", POWER_FACTOR_TOTAL_MIN_INT)
+			return -1;
+		}
+		power_factor.min = buf[0] * setup.scale_pf;
+
+		if (modbus_read_registers(ctx, POWER_FACTOR_TOTAL_MAX_INT, 1, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", POWER_FACTOR_TOTAL_MAX_INT)
+			return -1;
+		}
+		power_factor.max = buf[0] * setup.scale_pf;
+
+		// ---------INT----------
+	}
+	else
+	{
+		// --------FLOAT---------
+		if (modbus_read_registers(ctx, POWER_FACTOR_TOTAL, 2, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", POWER_FACTOR_TOTAL)
+			return -1;
+		}
+		power_factor.total = modbus_get_float_abcd(buf);
+
+		if (modbus_read_registers(ctx, POWER_FACTOR_TOTAL_MIN_FLOAT, 2, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", POWER_FACTOR_TOTAL_MIN_FLOAT)
+			return -1;
+		}
+		power_factor.min = modbus_get_float_abcd(buf);
+
+		if (modbus_read_registers(ctx, POWER_FACTOR_TOTAL_MAX_FLOAT, 2, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", POWER_FACTOR_TOTAL_MAX_FLOAT)
+			return -1;
+		}
+		power_factor.max = modbus_get_float_abcd(buf);
+
+		// --------FLOAT---------
+	}
+
+#ifdef DEBUG
+	std::cout << "Power factor reading completed!\n";
+#endif // DEBUG
+
+	return 0;
+}
+
 auto DataLogger::print_setup() -> void const
 {
 #ifdef DEBUG
@@ -730,6 +803,16 @@ auto DataLogger::write_demand_power_to_file(Power& power) -> void const
 	std::cout << power.name << ", " << power.metric << '\n';
 	std::cout << "Total " << power.demand.data[power.demand.int_regs.total] << ' ' << power.metric << '\n';
 	std::cout << "Peak " << power.demand.data[power.demand.int_regs.peak] << ' ' << power.metric << "\n\n";
+#endif // DEBUG
+}
+
+auto DataLogger::write_power_factor_to_file() -> void const
+{
+#ifdef DEBUG
+	std::cout << "Power factor\n";
+	std::cout << "Total = " << power_factor.total << '\n';
+	std::cout << "Max = " << power_factor.max << '\n';
+	std::cout << "Min = " << power_factor.min << "\n\n";
 #endif // DEBUG
 }
 
@@ -779,7 +862,6 @@ auto DataLogger::write_voltage_to_file() -> void const
 auto DataLogger::write_energy_to_file() -> void const
 {
 #ifdef DEBUG
-	std::cout << is_float << '\n';
 	std::cout << energy.name_real << " = " << energy.real << ' ' << energy.metric_real << ' ' << '\n';
 	std::cout << energy.name_reactive << " = " << energy.reactive << ' ' << energy.metric_reactive << '\n';
 	std::cout << energy.name_apparent << " = " << energy.apparent << ' ' << energy.metric_apparent << '\n';
