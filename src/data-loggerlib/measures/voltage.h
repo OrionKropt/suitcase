@@ -21,6 +21,17 @@ struct Min
 	float CN;
 };
 
+struct Frequency
+{
+	Frequency() : name("f"), metric("Hz"), data(0.0), min(0.0), max(0.0)
+	{}
+	const char const *name = "f";
+	const char *metric = "Hz";
+	float data;
+	float min;
+	float max;
+};
+
 class Voltage
 {
 public:
@@ -54,4 +65,6 @@ public:
 
 	// min
 	Min min;
+
+	Frequency frequency;
 };
