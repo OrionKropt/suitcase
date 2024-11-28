@@ -577,6 +577,28 @@ auto DataLogger::read_voltage_from_device() -> int
 		voltage.max.BN = buf[1] * setup.scale_v;
 		voltage.max.CN = buf[2] * setup.scale_v;
 
+		if (modbus_read_registers(ctx, FREQUENCY_INT, 1, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", FREQUENCY_INT)
+			return -1;
+		}
+		if (buf[0] <= std::numeric_limits<int16_t>().max())
+			voltage.frequency.data = buf[0] * setup.scale_fr;
+
+		if (modbus_read_registers(ctx, FREQUENCY_MIN_INT, 1, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", FREQUENCY_MIN_INT)
+			return -1;
+		}
+		voltage.frequency.min = buf[0] * setup.scale_fr;
+
+		if (modbus_read_registers(ctx, FREQUENCY_MAX_INT, 1, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", FREQUENCY_MAX_INT)
+			return -1;
+		}
+		voltage.frequency.max = buf[0] * setup.scale_fr;
+
 		// ---------INT----------
 	}
 	else
@@ -649,6 +671,28 @@ auto DataLogger::read_voltage_from_device() -> int
 		voltage.max.BN = modbus_get_float_abcd(buf + 2);
 		voltage.max.CN = modbus_get_float_abcd(buf + 4);
 
+		if (modbus_read_registers(ctx, FREQUENCY_FLOAT, 2, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", FREQUENCY_FLOAT)
+			return -1;
+		}
+		voltage.frequency.data = modbus_get_float_abcd(buf);
+		if (voltage.frequency.data != std::numeric_limits<float>().quiet_NaN())
+			voltage.frequency.data = 0;
+
+		if (modbus_read_registers(ctx, FREQUENCY_MIN_FLOAT, 2, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", FREQUENCY_MIN_FLOAT)
+			return -1;
+		}
+		voltage.frequency.min = modbus_get_float_abcd(buf);
+
+		if (modbus_read_registers(ctx, FREQUENCY_MAX_FLOAT, 2, buf) == -1)
+		{
+			PRINT_ERROR("Register read failed", false, "Register: {}", FREQUENCY_MAX_FLOAT)
+			return -1;
+		}
+		voltage.frequency.max = modbus_get_float_abcd(buf);
 		// --------FLOAT---------
 	}
 
@@ -840,6 +884,10 @@ auto DataLogger::write_current_to_file() -> void const
 auto DataLogger::write_voltage_to_file() -> void const
 {
 #ifdef DEBUG
+	std::cout << voltage.frequency.name << " = "
+		<< voltage.frequency.data << voltage.frequency.metric << '\n';
+	std::cout <<"Min = " << voltage.frequency.min << voltage.frequency.metric << '\n';
+	std::cout << "Max = " << voltage.frequency.max << voltage.frequency.metric << '\n';
 	std::cout << "Voltage L-L, 3 phase " << voltage.LL_3P_average << '\n';
 	std::cout << "Voltage L-N, 3 phase " << voltage.LN_3P_average << '\n';
 	std::cout << "AB\tBC\tCA\n";
