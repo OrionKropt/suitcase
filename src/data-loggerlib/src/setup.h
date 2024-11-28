@@ -18,7 +18,8 @@ public:
 		stop_bits(0),
 		slave_id(0),
 		port{ 0 },
-		scale_pf(0.0001f)                         // Constantat from the manual
+		scale_pf(0.0001),                         // Constantats from the manual
+		scale_fr(0.01)
 	{}
 	uint16_t mode;                                // 0 = IEC, 1 - IEEE
 	
@@ -27,7 +28,7 @@ public:
 	float scale_w;                                // power
 	float scale_e;                                // energy
 	const float scale_pf;                         // power factor
-
+	const float scale_fr;                         // frequency factor
 	
 	// This combination timer counts the total time for which the absolute current on at least one phase is > 0.1Amp.
 	
