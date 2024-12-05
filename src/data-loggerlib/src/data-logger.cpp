@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+
 #include "error.h"
 
 DataLogger::DataLogger() : ctx(nullptr),
@@ -10,16 +11,16 @@ is_float(true),
 real_power("P", "kW"),
 apparent_power("S", "kVA"),
 reactive_power("Q", "kVAR"),
-energy("W", "kWh", "S", "VArh", "Q", "VAh")
+energy("W", "kWh", "S", "VArh", "Q", "VAh"),
+time(std::chrono::system_clock::now())
 {}
 
 DataLogger::~DataLogger()
 {
-	modbus_close(ctx);
-	modbus_free(ctx);
+	modbus_disconnect_form_device();
 }
 
-auto DataLogger::init() -> void
+auto DataLogger::init() noexcept -> void
 {
 	sprintf(setup.port, "\COM1");
 	setup.port_speed = 19200;
@@ -27,6 +28,12 @@ auto DataLogger::init() -> void
 	setup.data_bits = 8;
 	setup.stop_bits = 1;
 	setup.slave_id = 1;
+	is_float = false;
+	regs_init();
+}
+
+auto DataLogger::modbus_connect_to_device() noexcept -> void
+{
 	ctx = modbus_new_rtu(setup.port, setup.port_speed, setup.parity, setup.data_bits, setup.stop_bits);
 	if (ctx == NULL) 
 	{
@@ -65,15 +72,18 @@ auto DataLogger::init() -> void
 	 setup.scale_v = fast_pow(10, buf[1]);
 	 setup.scale_w = fast_pow(10, buf[2]);
 	 setup.scale_e = fast_pow(10, buf[3]);
-
-	regs_init();
-
-	is_float = false;
 }
 
-auto DataLogger::read_data_from_device() -> int
+auto DataLogger::modbus_disconnect_form_device() noexcept -> void
+{
+	modbus_close(ctx);
+	modbus_free(ctx);
+}
+
+auto DataLogger::read_data_from_device() noexcept -> int
 {
 	int res = 0;
+	time = std::chrono::system_clock::now();
 	res = read_power_from_device(real_power);
 	if (res)
 	{
@@ -144,7 +154,7 @@ auto DataLogger::read_data_from_device() -> int
 	return 0;
 }
 
-auto DataLogger::write_data_to_file() -> void const
+auto DataLogger::write_data_to_file() noexcept -> void
 {
 
 #ifdef DEBUG
@@ -183,7 +193,7 @@ auto DataLogger::write_data_to_file() -> void const
 	write_energy_to_file();
 }
 
-auto DataLogger::regs_init() -> void
+auto DataLogger::regs_init() noexcept -> void
 {
 	// ----------real_power----------
 	// int
@@ -263,7 +273,7 @@ auto DataLogger::regs_init() -> void
 }
 
 
-auto DataLogger::read_power_from_device(Power& power) -> int
+auto DataLogger::read_power_from_device(Power& power) noexcept -> int
 {
 	if (!is_float)
 	{
@@ -370,7 +380,7 @@ auto DataLogger::read_power_from_device(Power& power) -> int
 	return 0;
 }
 
-auto DataLogger::read_current_from_device() -> int
+auto DataLogger::read_current_from_device() noexcept -> int
 {
 	if (!is_float)
 	{
@@ -505,7 +515,7 @@ auto DataLogger::read_current_from_device() -> int
 	return 0;
 }
 
-auto DataLogger::read_voltage_from_device() -> int
+auto DataLogger::read_voltage_from_device() noexcept -> int
 {
 	if (!is_float)
 	{
@@ -703,7 +713,7 @@ auto DataLogger::read_voltage_from_device() -> int
 	return 0;
 }
 
-auto DataLogger::read_energy_from_device() -> int
+auto DataLogger::read_energy_from_device() noexcept -> int
 {
 	if (!is_float)
 	{
@@ -744,7 +754,7 @@ auto DataLogger::read_energy_from_device() -> int
 	return 0;
 }
 
-auto DataLogger::read_power_factor_from_device() -> int
+auto DataLogger::read_power_factor_from_device() noexcept -> int
 {
 	if (!is_float)
 	{
@@ -807,7 +817,7 @@ auto DataLogger::read_power_factor_from_device() -> int
 	return 0;
 }
 
-auto DataLogger::print_setup() -> void const
+auto DataLogger::print_setup() const noexcept -> void
 {
 #ifdef DEBUG
 	std::cout << "\nSETUP\n\n";
@@ -827,7 +837,7 @@ auto DataLogger::print_setup() -> void const
 #endif // DEBUG
 }
 
-auto DataLogger::write_power_to_file(Power& power) -> void const
+auto DataLogger::write_power_to_file(Power& power) noexcept-> void
 {
 #ifdef DEBUG
 	std::cout << power.name << ", " << power.metric << '\n';
@@ -841,7 +851,7 @@ auto DataLogger::write_power_to_file(Power& power) -> void const
 #endif // DEBUG
 }
 
-auto DataLogger::write_demand_power_to_file(Power& power) -> void const
+auto DataLogger::write_demand_power_to_file(Power& power) noexcept -> void
 {
 #ifdef DEBUG
 	std::cout << power.name << ", " << power.metric << '\n';
@@ -850,7 +860,7 @@ auto DataLogger::write_demand_power_to_file(Power& power) -> void const
 #endif // DEBUG
 }
 
-auto DataLogger::write_power_factor_to_file() -> void const
+auto DataLogger::write_power_factor_to_file() noexcept -> void
 {
 #ifdef DEBUG
 	std::cout << "Power factor\n";
@@ -860,7 +870,7 @@ auto DataLogger::write_power_factor_to_file() -> void const
 #endif // DEBUG
 }
 
-auto DataLogger::write_current_to_file() -> void const
+auto DataLogger::write_current_to_file() noexcept -> void
 {
 #ifdef DEBUG
 	std::cout << "I = " << current.phase_3 << '\n';
@@ -881,7 +891,7 @@ auto DataLogger::write_current_to_file() -> void const
 
 }
 
-auto DataLogger::write_voltage_to_file() -> void const
+auto DataLogger::write_voltage_to_file() noexcept -> void
 {
 #ifdef DEBUG
 	std::cout << voltage.frequency.name << " = "
@@ -907,7 +917,7 @@ auto DataLogger::write_voltage_to_file() -> void const
 
 }
 
-auto DataLogger::write_energy_to_file() -> void const
+auto DataLogger::write_energy_to_file() noexcept -> void
 {
 #ifdef DEBUG
 	std::cout << energy.name_real << " = " << energy.real << ' ' << energy.metric_real << ' ' << '\n';
@@ -916,7 +926,7 @@ auto DataLogger::write_energy_to_file() -> void const
 #endif // DEBUG
 }
 
-auto DataLogger::fast_pow(float n, int16_t deg) -> float
+auto DataLogger::fast_pow(float n, int16_t deg) noexcept -> float
 {
 	if (deg == 0) return 1;
 	
@@ -938,7 +948,7 @@ auto DataLogger::fast_pow(float n, int16_t deg) -> float
 	}
 }
 
-inline auto DataLogger::get_long(uint16_t* src) -> long
+inline auto DataLogger::get_long(uint16_t* src) const noexcept -> long
 {
 	if (src == nullptr)
 	{
@@ -949,5 +959,136 @@ inline auto DataLogger::get_long(uint16_t* src) -> long
 	return (((long)src[0]) << 16) | src[1];
 }
 
+auto DataLogger::get_com_port_name(char *port, const int len) const noexcept -> void
+{
+	int cur_size = 0;
+	if (port == nullptr)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("New port is nullptr", false);
+#endif // DEBUG
+		return;
+	}
 
+	cur_size = sizeof(setup.port);
+	if (cur_size > len)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("Port len is too short", false);
+#endif // DEBUG
+		return;
+	}
+	strcpy(port, setup.port);
+}
 
+auto DataLogger::get_com_port_speed_bods() const noexcept -> uint16_t
+{
+	return setup.port_speed;
+}
+
+auto DataLogger::get_parity() const noexcept -> char
+{
+	return setup.parity;
+}
+
+auto DataLogger::get_data_bits() const noexcept -> uint16_t
+{
+	return setup.data_bits;
+}
+
+auto DataLogger::get_stop_bits() const noexcept -> uint16_t
+{
+	return setup.stop_bits;
+}
+
+auto DataLogger::get_slave_id() const noexcept -> uint16_t
+{
+	return setup.slave_id;
+}
+
+auto DataLogger::get_real_power() const noexcept -> Power
+{
+	return real_power;
+}
+
+auto DataLogger::get_apparent_power() const noexcept -> Power
+{
+	return apparent_power;
+}
+
+auto DataLogger::get_reactive_power() const noexcept -> Power
+{
+	return reactive_power;
+}
+
+auto DataLogger::get_power_factor() const noexcept -> PowerFactor
+{
+	return power_factor;
+}
+
+auto DataLogger::get_current() const noexcept -> Current
+{
+	return current;
+}
+
+auto DataLogger::get_voltage() const noexcept -> Voltage
+{
+	return voltage;
+}
+
+auto DataLogger::get_energy() const noexcept -> Energy
+{
+	return energy;
+}
+
+auto DataLogger::get_current_time() const noexcept -> TimePoint
+{
+	return time;
+}
+
+auto DataLogger::set_com_port_name(char* port) noexcept -> void
+{
+	int cur_size, new_len;
+	if (port == nullptr)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("New port is nullptr", false);
+#endif // DEBUG
+		return;
+	}
+	cur_size = sizeof(setup.port);
+	new_len = strlen(port);
+	if (cur_size < new_len)
+	{
+#ifdef DEBUG
+		PRINT_ERROR("New port's name is to loong", false);
+#endif // DEBUG
+		return;
+	}
+	strcpy(setup.port, port);
+}
+
+auto DataLogger::set_com_port_speed_bods(uint16_t bods) noexcept -> void
+{
+	setup.port_speed = bods;
+}
+
+auto DataLogger::set_parity(char parity) noexcept -> void
+{
+	setup.parity = parity;
+}
+
+auto DataLogger::set_data_bits(uint16_t data_bits) noexcept -> void
+{
+	setup.data_bits = data_bits;
+}
+
+auto DataLogger::set_stop_bits(uint16_t stop_bits) noexcept -> void
+{
+	setup.stop_bits = stop_bits;
+}
+
+auto DataLogger::set_slave_id(uint16_t id) noexcept -> void
+{
+	setup.slave_id = id;
+}
