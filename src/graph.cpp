@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iostream>
 #include "utils.h"
-#include "error.h"
+#include "logger.h"
 
 extern OpenGL& opengl;
 
@@ -120,15 +120,17 @@ Graph::Graph(const wchar_t* abscissa, const wchar_t* ordinate, AxisValue hor_zer
     // * Main lines (axis)
     if (abs(ver_center) > floor(hor_delims / 2))
     {
-        PRINT_ERROR("Invalid abscissa axis position", true,
-                    "{0:} is provided, but the valid range is [-{1:}, {1:}]\n",
-                    ver_center, (GLint) floor(hor_delims / 2));
+        LOG_ERROR("Invalid abscissa axis position\n"
+                  "{0:} is provided, but the valid range is [-{1:}, {1:}]",
+                  ver_center, (GLint) floor(hor_delims / 2));
+        std::exit(EXIT_FAILURE);
     }
     if (abs(hor_center) > floor(ver_delims / 2))
     {
-        PRINT_ERROR("Invalid ordinate axis position", true,
-                    "{0:} is provided, but the valid range is [-{1:}, {1:}]\n",
-                    hor_center, (GLint) floor(ver_delims / 2));
+        LOG_ERROR("Invalid ordinate axis position\n"
+                  "{0:} is provided, but the valid range is [-{1:}, {1:}]",
+                  hor_center, (GLint) floor(ver_delims / 2));
+        std::exit(EXIT_FAILURE);
     }
 
     GLfloat hor_axis_offset = hor_center * ver_grid_step - ver_offset;
@@ -269,7 +271,8 @@ auto Graph::create_curve(const wchar_t* name, glm::vec3 color) -> void
 {
     if (curves.contains(name))
     {
-        PRINT_ERROR("Curve with given name already exists in this Graph.", true);
+        LOG_ERROR("Curve with given name already exists in this Graph.");
+        std::exit(EXIT_FAILURE);
     }
     curves.emplace(name, std::make_shared<Curve>(color));
 }
@@ -284,7 +287,8 @@ auto Graph::create_caption_container(const wchar_t* name, GLfloat width, GLfloat
     auto [it, success] = caption_containers.emplace(name, std::make_shared<CaptionContainer>(width, height, container_position, indent_x, indent_y));
     if (!success)
     {
-        PRINT_ERROR("Can't create new CaptionContainer. Given name already exists.", true);
+        LOG_ERROR("Can't create new CaptionContainer. Given name already exists.");
+        std::exit(EXIT_FAILURE);
     }
 
     caption_containers.at(name)->captions.emplace_back();
@@ -318,11 +322,13 @@ auto Graph::create_caption(const wchar_t* container, const wchar_t* curve, GLboo
     // Check if CaptionContainer and Curve exists
     if (!caption_containers.contains(container))
     {
-        PRINT_ERROR("No CaptionContainer with given name exists.", true);
+        LOG_ERROR("No CaptionContainer with given name exists.");
+        std::exit(EXIT_FAILURE);
     }
     if (!curves.contains(curve))
     {
-        PRINT_ERROR("No Curve with given name exists.", true);
+        LOG_ERROR("No Curve with given name exists.");
+        std::exit(EXIT_FAILURE);
     }
     const auto this_container = caption_containers.at(container);
     const auto this_curve = curves.at(curve);
@@ -348,7 +354,9 @@ auto Graph::create_caption(const wchar_t* container, const wchar_t* curve, GLboo
         GLfloat new_height = this_container->current_height + this_container->indent_y + text_height_ndc;
         if (new_height >= this_container->height * 2)
         {
-            PRINT_ERROR("CaptionContainer doesn't have enough height for new Caption.", false, "Required {:.3f}, but only {:.3f} available.\n", new_height, this_container->height * 2);
+            LOG_WARNING("CaptionContainer doesn't have enough height for new Caption.\n"
+                        "Required {:.3f}, but only {:.3f} available.",
+                        new_height, this_container->height * 2);
             return;
         }
 
@@ -373,7 +381,9 @@ auto Graph::create_caption(const wchar_t* container, const wchar_t* curve, GLboo
     fits = new_width < this_container->width * 2;
     if (!fits)
     {
-        PRINT_ERROR("CaptionContainer doesn't have enough width for new Caption.", false, "Required {:.3f}, but only {:.3f} available.\n", new_width, this_container->width * 2);
+        LOG_WARNING("CaptionContainer doesn't have enough width for new Caption.\n"
+                    "Required {:.3f}, but only {:.3f} available.",
+                    new_width, this_container->width * 2);
         return;
     }
 
@@ -415,7 +425,8 @@ auto Graph::set_container_borders_enabled(const wchar_t* container, bool state) 
 {
     if (!caption_containers.contains(container))
     {
-        PRINT_ERROR("No CaptionContainer with given name exists.", true);
+        LOG_ERROR("No CaptionContainer with given name exists.");
+        std::exit(EXIT_FAILURE);
     }
     caption_containers.at(container)->borders_enabled = state;
 }
@@ -424,16 +435,18 @@ auto Graph::add_point(const wchar_t* curve_name, AxisValue x, AxisValue y) -> vo
 {
     if (!curves.contains(curve_name))
     {
-        PRINT_ERROR("No Curve with given name exists.", true);
+        LOG_ERROR("No Curve with given name exists.");
+        std::exit(EXIT_FAILURE);
     }
     auto this_curve = curves.at(curve_name);
 
     GLfloat x_part = find_value(0, x);
     GLfloat y_part = find_value(1, y);
 
+    // Now I understand what technical debt is... The fuck these variable names are?
     if (x_part == -1.0f || y_part == -1.0f)
     {
-        PRINT_ERROR("Can't create a point.", false, "No matching coordinate found.\n");
+        LOG_WARNING("Can't create a point. No matching coordinate found.");
         return;
     }
 
@@ -441,7 +454,7 @@ auto Graph::add_point(const wchar_t* curve_name, AxisValue x, AxisValue y) -> vo
     {
         if (x_part > 2.0f)
         {
-            PRINT_ERROR("Can't create a point.", false, "X coordinate goes further than 2 horizontal axis'.\n");
+            LOG_WARNING("Can't create a point. X coordinate goes further than 2 horizontal axis'.");
             return;
         }
 
@@ -520,7 +533,7 @@ auto Graph::add_segment(const wchar_t* curve_name, glm::vec2 start, glm::vec2 en
 {
     if (!curves.contains(curve_name))
     {
-        PRINT_ERROR("No Curve with given name exists.", true);
+        LOG_ERROR("No Curve with given name exists.");
     }
     auto this_curve = curves.at(curve_name);
 
@@ -717,7 +730,7 @@ auto Graph::find_value(GLint axis, AxisValue axis_value) -> GLfloat
             values = &ver_values;
             break;
         default:
-            PRINT_ERROR("Incorrect axis provided", true);
+            LOG_ERROR("Incorrect axis provided");
     }
 
     GLfloat part = std::visit([&values](auto&& alternative) -> GLfloat

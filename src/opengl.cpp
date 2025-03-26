@@ -8,7 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include "error.h"
+#include "logger.h"
 
 std::vector<GLboolean> OpenGL::keys(1024, false);
 std::vector<GLboolean> OpenGL::mouse_buttons(8, false);
@@ -37,7 +37,8 @@ auto OpenGL::initialize() -> void
     // * -------------------------------------------------------------------------------------------
     if (!glfwInit())
     {
-        PRINT_ERROR("GLFW initialization failed", true);
+        LOG_ERROR("GLFW initialization failed");
+        std::exit(EXIT_FAILURE);
     }
 
     glfwSetErrorCallback(error_callback);
@@ -54,7 +55,8 @@ auto OpenGL::initialize() -> void
     if (!window)
     {
         glfwTerminate();
-        PRINT_ERROR("Window creation failed", true);
+        LOG_ERROR("Window creation failed");
+        std::exit(EXIT_FAILURE);
     }
 
     // Callbacks
@@ -72,7 +74,8 @@ auto OpenGL::initialize() -> void
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
     {
         glfwTerminate();
-        PRINT_ERROR("GLAD initialization failed", true);
+        LOG_ERROR("GLAD initialization failed");
+        std::exit(EXIT_FAILURE);
     }
 
     glViewport(0, 0, window_width, window_height);
@@ -91,7 +94,8 @@ auto OpenGL::initialize() -> void
     if (FT_Init_FreeType(&ft))
     {
         glfwTerminate();
-        PRINT_ERROR("FreeType initialization failed", true);
+        LOG_ERROR("FreeType initialization failed");
+        std::exit(EXIT_FAILURE);
     }
 
     FT_Face face;
@@ -99,7 +103,9 @@ auto OpenGL::initialize() -> void
     if (FT_New_Face(ft, font_path, 0, &face))
     {
         glfwTerminate();
-        PRINT_ERROR("Font load failed", true, "Path to font: '{}'\n", font_path);
+        LOG_ERROR("Font load failed\n"
+                  "Path to font: '{}'", font_path);
+        std::exit(EXIT_FAILURE);
     }
 
     FT_Set_Pixel_Sizes(face, 0, 48);
@@ -127,7 +133,8 @@ auto OpenGL::initialize() -> void
 
         if (FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER))
         {
-            PRINT_ERROR("Glyph load failed", false, "Glyph: '{}'\n", (unsigned long) c);
+            LOG_WARNING("Glyph load failed\n"
+                        "Glyph: '{}'", (unsigned long) c);
             continue;
         }
 
@@ -221,7 +228,10 @@ auto OpenGL::get_mouse_y() -> GLfloat
 
 auto OpenGL::error_callback(int error, const char* what) -> void
 {
-    PRINT_ERROR("OpenGL error occurred.", false, "Details: {}\nCode: {}\n", what, error);
+    LOG_WARNING("OpenGL error occurred.\n"
+                "Details: {}\n"
+                "Code: {}",
+                what, error);
 }
 
 auto OpenGL::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void
@@ -287,7 +297,8 @@ Shader::Shader(const char* vertex_path, const char* fragment_path, const char* g
     }
     catch (std::ifstream::failure& exception)
     {
-        PRINT_ERROR("Shader file read failed", true, "Details: {}\n", exception.what());
+        LOG_ERROR("Shader file read failed\n"
+                  "Details: {}", exception.what());
     }
 
     const GLchar* vertex_code = vertex_code_raw.c_str();
@@ -416,7 +427,10 @@ auto Shader::check_compile_errors(GLuint target, const std::string&& type) -> vo
         if (!success)
         {
             glGetShaderInfoLog(target, 1024, nullptr, log);
-            PRINT_ERROR("Shader compilation failed", true, "Shader: {} \nLog: {}\n", type, log);
+            LOG_ERROR("Shader compilation failed\n"
+                      "Shader: {}\n"
+                      "Log: {}",
+                      type, log);
         }
     }
     else if (type == "PROGRAM")
@@ -425,11 +439,13 @@ auto Shader::check_compile_errors(GLuint target, const std::string&& type) -> vo
         if (!success)
         {
             glGetProgramInfoLog(target, 1024, nullptr, log);
-            PRINT_ERROR("Shader program linking failed", true, "Log: {}\n", log);
+            LOG_ERROR("Shader program linking failed\n"
+                      "Log: {}", log);
         }
     }
     else
     {
-        PRINT_ERROR("Unknown type specified", false, "Type: {}\n", type);
+        LOG_WARNING("Unknown type specified\n"
+                    "Type: {}", type);
     }
 }
