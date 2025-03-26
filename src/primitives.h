@@ -200,3 +200,25 @@ private:
     void                    (*on_release)();
     std::shared_ptr<Text>   text;
 };
+
+
+class Semicircle : public Primitive
+{
+public:
+    Semicircle(glm::vec2 position, GLfloat outer_radius, GLfloat inner_radius, glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f));
+    Semicircle(GLfloat x, GLfloat y, GLfloat outer_radius, GLfloat inner_radius, GLfloat R = 0.0f, GLfloat G = 0.0f, GLfloat B = 0.0f);
+    ~Semicircle() override;
+
+    auto draw() -> void override;
+
+private:
+    std::shared_ptr<Shader> shader;
+    GLuint                  VAO;
+    GLuint                  VBO;
+    GLuint                  EBO;
+    glm::vec2               position;           // NDC
+    glm::vec3               color;
+    GLfloat                 outer_radius;
+    GLfloat                 inner_radius;
+    glm::vec2               center_position;
+};

@@ -757,3 +757,66 @@ auto Button::check_pressing() -> void
         on_release();
     }
 }
+
+
+Semicircle::Semicircle(glm::vec2 position, GLfloat outer_radius, GLfloat inner_radius, glm::vec3 color)
+{
+    this->position      = position;
+    this->outer_radius  = outer_radius;
+    this->inner_radius  = inner_radius;
+    this->color         = color;
+
+    this->center_position = position - glm::vec2(0.0f, outer_radius / 2);
+
+    shader = opengl.get_shader("semicircle");
+
+    GLfloat vertices[] = {
+            position.x - outer_radius, position.y - outer_radius / 2,
+            position.x - outer_radius, position.y + outer_radius / 2,
+            position.x + outer_radius, position.y + outer_radius / 2,
+            position.x + outer_radius, position.y - outer_radius / 2
+    };
+
+    GLuint indices[] = {
+            0, 1, 2,
+            0, 2, 3
+    };
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*) 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+Semicircle::Semicircle(GLfloat x, GLfloat y, GLfloat outer_radius, GLfloat inner_radius, GLfloat R, GLfloat G, GLfloat B)
+    : Semicircle(glm::vec2(x, y), outer_radius, inner_radius, glm::vec3(R, G, B)) {}
+
+Semicircle::~Semicircle()
+{
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+}
+
+auto Semicircle::draw() -> void
+{
+    shader->use();
+    shader->set_vec3("color", color);
+    shader->set_vec2("center", center_position);
+    shader->set_float("outer_radius", outer_radius);
+    shader->set_float("inner_radius", inner_radius);
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
